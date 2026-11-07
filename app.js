@@ -85,7 +85,7 @@
     $("#model-now").textContent = pick.value === CUSTOM && !m
       ? "모델 이름을 입력하세요 (비우면 서버 기본값)"
       : m ? `호출 모델 ${m}`
-        : `호출 모델 서버 기본값${SERVER_DEFAULT ? ` (${SERVER_DEFAULT})` : " (서버에 닿지 못해 이름을 모름)"}`;
+        : `호출 모델 서버 기본값${SERVER_DEFAULT ? ` (${SERVER_DEFAULT})` : " (서버에 연결하지 못해 이름을 알 수 없음)"}`;
   }
   pick.addEventListener("change", () => {
     custom.hidden = pick.value !== CUSTOM;
@@ -108,7 +108,7 @@
       });
       return await r.json();
     } catch (e) {
-      return { results: null, reason: "AI 서버에 닿지 못했습니다 (서버 함수가 없는 로컬에서는 정상)" };
+      return { results: null, reason: "AI 서버에 연결하지 못했어요 (서버 함수가 없는 로컬이면 정상)" };
     }
   }
 
@@ -122,7 +122,7 @@
     const rules = list.map(x => byRules(x.text, x.brand));
     let ai = await askAI(rules.map((r, i) => ({ text: r.masked, brand: list[i].brand })));
     if (ai && ai.timeout) {                       // 느리면 한 번만 더
-      if (btn) btn.textContent = "다시 시도…";
+      if (btn) btn.textContent = "다시 시도 중…";
       ai = await askAI(rules.map((r, i) => ({ text: r.masked, brand: list[i].brand })));
     }
     return list.map((x, i) => {
@@ -143,7 +143,7 @@
     const btn = $("#form .btn.primary");
     btn.disabled = true;
     const [item] = await classifyMany([{ text, brand }], btn);
-    btn.textContent = "분류하기"; btn.disabled = false;
+    btn.textContent = "분류"; btn.disabled = false;
     ITEMS.push(item); SEL = item.id;
     $("#text").value = "";
     renderInbox();
@@ -152,13 +152,13 @@
   $("#load-examples").addEventListener("click", async () => {
     if (!C) return;
     const b = $("#load-examples");
-    b.disabled = true; b.textContent = "분류하는 중…";
+    b.disabled = true; b.textContent = "분류 중…";
     // 예시는 기준 파일의 «예»에서 고른다 — 채점용 문장은 쓰지 않는다
     const picks = [...C.categories].sort((a, c) => a.order - c.order).filter(c => [1, 3, 7, 8].includes(c.order))
       .map(c => ({ text: c.example, brand: c.name === "뷰티 상품" ? "B" : "A" }));
     const items = await classifyMany(picks);
     ITEMS.push(...items); SEL = items[0].id;
-    b.disabled = false; b.textContent = "예시 4개 넣어 보기";
+    b.disabled = false; b.textContent = "예시 4개 넣기";
     renderInbox();
   });
 
@@ -253,8 +253,8 @@
         const part = rows.slice(i, i + BATCH).map(r => ({ text: Mask.mask(r.text).masked, brand: r.brand }));
         let res = await askAI(part);
         if (res && res.timeout) {                 // 느리면 그 묶음만 한 번 더
-          btn.textContent = "다시 시도…";
-          prog.textContent = `AI가 느려서 ${i + 1}~${i + part.length}번을 다시 보내는 중…`;
+          btn.textContent = "다시 시도 중…";
+          prog.textContent = `AI 응답이 느려 ${i + 1}~${i + part.length}번을 다시 보내는 중…`;
           res = await askAI(part);
           btn.textContent = "AI로 채점";
           if (res && res.timeout) {               // 두 번 다 느리면 멈춘다
@@ -268,15 +268,15 @@
         prog.textContent = `AI 채점 중… ${Math.min(i + BATCH, rows.length)}/${rows.length}`;
       }
       const missing = got.filter(x => !x).length;
-      const NONE = { category: "(답 없음)", urgency: "(답 없음)", reason: "AI가 답하지 않음 — 오답으로 셈" };
+      const NONE = { category: "(답 없음)", urgency: "(답 없음)", reason: "AI 답 없음 — 오답 처리" };
       const s = Rules.score(rows, r => got[rows.indexOf(r)] || NONE);
       s.missing = missing;
       LAST.ai = s; LAST.model = model;
       LAST.aiRaw = rows.map((r, i) => ({ id: r.id, brand: r.brand, text: r.text,
         want: { category: r.category, urgency: r.urgency }, got: got[i] }));
       prog.textContent = missing
-        ? `끝 — AI가 답하지 않은 문장 ${missing}개는 오답으로 셌어요. ${reasons[0] || ""}`
-        : `끝 — 30개 모두 AI가 답했어요.`;
+        ? `완료 — AI가 답하지 않은 문장 ${missing}개는 오답으로 셌어요. ${reasons[0] || ""}`
+        : `완료 — 30개 모두 AI가 답했어요.`;
       renderScore(s, model ? `AI · ${model}` : "AI");
       renderCompare();
     } finally { btn.disabled = false; btn.textContent = "AI로 채점"; }
@@ -290,8 +290,9 @@
       ["칸 맞음", s => s.category, s => s.n, 1, true],
       ["긴급도 맞음", s => s.urgency, s => s.n, 1, true],
       ["둘 다 맞음", s => s.both, s => s.n, 1, true],
+      ["안전·사고를 다른 칸으로 놓침", s => s.worst.safe, s => s.worst.safeTotal, -1, true],
       ["결제·환불을 다른 칸으로 놓침", s => s.worst.pay, s => s.worst.payTotal, -1, true],
-      ["피부 반응을 높음 아닌 긴급도로 놓침", s => s.worst.skin, s => s.worst.skinTotal, -1, false],
+      ["피부 반응을 높음이 아닌 긴급도로 놓침", s => s.worst.skin, s => s.worst.skinTotal, -1, false],
       ["AI 답 없음", s => s.missing ?? 0, null, -1, false],
     ];
     $("#c-table").innerHTML = rows.map(([label, v, total, dir, key]) => {
@@ -314,8 +315,9 @@
     $("#s-which").textContent = `${who} — 자세히 (${n}문장)`;
     const w = s.worst;
     $("#s-worst").innerHTML = `
-      <li>결제·환불을 다른 칸으로 — <span class="${w.pay ? "bad" : ""}">${w.pay}개</span> / ${w.payTotal}문장 중</li>
-      <li>피부 반응(뷰티 상품 · 높음)을 높음이 아닌 긴급도로 — <span class="${w.skin ? "bad" : ""}">${w.skin}개</span> / ${w.skinTotal}문장 중</li>`;
+      <li>안전·사고를 다른 칸으로 — ${w.safeTotal}문장 중 <span class="${w.safe ? "bad" : ""}">${w.safe}개</span></li>
+      <li>결제·환불을 다른 칸으로 — ${w.payTotal}문장 중 <span class="${w.pay ? "bad" : ""}">${w.pay}개</span></li>
+      <li>피부 반응(뷰티 상품 · 높음)을 높음이 아닌 긴급도로 — ${w.skinTotal}문장 중 <span class="${w.skin ? "bad" : ""}">${w.skin}개</span></li>`;
     $("#s-brand").innerHTML = `<thead><tr><th>브랜드</th><th class="num">문장</th><th class="num">칸</th><th class="num">긴급도</th><th class="num">둘 다</th></tr></thead><tbody>` +
       Object.entries(s.brands).sort().map(([b, v]) =>
         `<tr><td>${esc(b)}</td><td class="num">${v.n}</td><td class="num">${v.category}</td><td class="num">${v.urgency}</td><td class="num">${v.both}</td></tr>`).join("") + "</tbody>";
