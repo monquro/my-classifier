@@ -42,10 +42,15 @@
     <section class="list" aria-labelledby="list-h">
       <div class="list-head">
         <h2 id="list-h">받은 글 <span class="count" id="count">0건</span></h2>
-        <span class="hi-count" id="hi-count" hidden></span>
+        <span class="list-tools">
+          <span class="hi-count" id="hi-count" hidden></span>
+          <button type="button" class="btn sm" id="export" disabled>CSV</button>
+        </span>
       </div>
       <div class="filters" role="group" aria-label="목록 거르기">
         <button type="button" data-f="all" aria-pressed="true">전체</button>
+        <button type="button" data-f="open" aria-pressed="false">미완료</button>
+        <button type="button" data-f="late" aria-pressed="false">기한 지남</button>
         <button type="button" data-f="높음" aria-pressed="false">높음</button>
         <button type="button" data-f="A" aria-pressed="false">A</button>
         <button type="button" data-f="B" aria-pressed="false">B</button>
@@ -54,7 +59,7 @@
       <div class="list-empty" id="list-empty">
         <p>아직 받은 글이 없어요.</p>
         <p class="sub">가운데에서 새 글을 넣거나 예시를 한 번에 넣어 보세요.</p>
-        <button type="button" class="btn" id="load-examples">예시 4개 넣기</button>
+        <button type="button" class="btn" id="load-examples">예시 넣기</button>
       </div>
     </section>
 
@@ -70,6 +75,21 @@
             <label><input type="radio" name="brand" value="모름"><span>모름</span></label>
           </div>
         </div>
+        <div class="field two-col">
+          <div>
+            <label for="source" class="field-label">출처</label>
+            <select id="source">
+              <option>구글 리뷰</option><option>Yelp 리뷰</option><option>인스타그램 댓글</option><option>틱톡 댓글</option>
+              <option>DM</option><option>매장 QR 피드백</option><option>이메일</option><option>기타</option>
+            </select>
+          </div>
+          <div>
+            <label for="store" class="field-label">매장</label>
+            <input id="store" type="text" list="store-list" placeholder="예) A 1호점" autocomplete="off">
+            <datalist id="store-list"><option value="A 1호점"><option value="A 2호점"><option value="A 3호점"><option value="B 1호점"><option value="온라인 · 매장 모름"></datalist>
+          </div>
+        </div>
+        <p class="help auto-note">받은 시각은 «분류»를 누른 때로 자동 기록돼요. 출처 · 매장은 다음 글에도 그대로 남아요.</p>
         <div class="field">
           <label for="text" class="field-label">고객 글</label>
           <textarea id="text" rows="3" placeholder="리뷰 · DM · 댓글 한 줄을 붙여 넣으세요."></textarea>
@@ -100,11 +120,15 @@
       <section class="panel">
         <h2 class="panel-title">분류</h2>
         <dl class="prop-list" id="props">
-          <div><dt>칸</dt><dd>—</dd></div>
-          <div><dt>긴급도</dt><dd>—</dd></div>
-          <div><dt>답장</dt><dd>—</dd></div>
-          <div><dt>브랜드</dt><dd>—</dd></div>
-          <div><dt>판정</dt><dd>—</dd></div>
+          <div><dt>칸</dt><dd data-k="cat">—</dd></div>
+          <div><dt>긴급도</dt><dd data-k="urg">—</dd></div>
+          <div><dt>답장 기한</dt><dd data-k="due">—</dd></div>
+          <div><dt>담당</dt><dd data-k="team">—</dd></div>
+          <div><dt>상태</dt><dd data-k="state">—</dd></div>
+          <div><dt>브랜드</dt><dd data-k="brand">—</dd></div>
+          <div><dt>매장</dt><dd data-k="store">—</dd></div>
+          <div><dt>출처</dt><dd data-k="source">—</dd></div>
+          <div><dt>판정</dt><dd data-k="by">—</dd></div>
         </dl>
       </section>
       <details class="panel crit">
