@@ -8,3 +8,7 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# 작업용 폴더 — 저장소에 넣지 않는다
+_workspace/
+_시안/

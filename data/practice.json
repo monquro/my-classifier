@@ -220,7 +220,7 @@
     "id": "P32",
     "brand": "A",
     "text": "매장 바닥이 젖어 있어서 미끄러질 뻔했어요.",
-    "category": "매장 경험",
+    "category": "안전·사고",
     "urgency": "높음"
   },
   {
@@ -418,5 +418,26 @@
     "text": "화장품 사고 바로 사진까지 찍고, 한 번에 해결돼서 너무 좋아요!",
     "category": "칭찬",
     "urgency": "낮음"
+  },
+  {
+    "id": "P61",
+    "brand": "A",
+    "text": "부스 안 거울이 깨져 있어서 아이 손가락이 베였어요.",
+    "category": "안전·사고",
+    "urgency": "높음"
+  },
+  {
+    "id": "P62",
+    "brand": "A",
+    "text": "Slipped on the wet floor near the booth and hurt my knee.",
+    "category": "안전·사고",
+    "urgency": "높음"
+  },
+  {
+    "id": "P63",
+    "brand": "B",
+    "text": "진열대 모서리에 부딪혀서 다리에 멍이 들었어요.",
+    "category": "안전·사고",
+    "urgency": "높음"
   }
 ]

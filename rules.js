@@ -43,13 +43,14 @@
   /* rows = answer.json. predict(row) → {category, urgency}. 가장 나쁜 실수 둘도 센다 */
   function score(rows, predict) {
     const out = { n: rows.length, category: 0, urgency: 0, both: 0, wrong: [], brands: {},
-                  worst: { pay: 0, payTotal: 0, skin: 0, skinTotal: 0 } };
+                  worst: { pay: 0, payTotal: 0, skin: 0, skinTotal: 0, safe: 0, safeTotal: 0 } };
     for (const r of rows) {
       const p = predict(r);
       const okC = p.category === r.category, okU = p.urgency === r.urgency;
       out.category += okC; out.urgency += okU; out.both += okC && okU;
       const b = out.brands[r.brand] || (out.brands[r.brand] = { n: 0, category: 0, urgency: 0, both: 0 });
       b.n += 1; b.category += okC; b.urgency += okU; b.both += okC && okU;
+      if (r.category === "안전·사고") { out.worst.safeTotal += 1; if (!okC) out.worst.safe += 1; }
       if (r.category === "결제·환불") { out.worst.payTotal += 1; if (!okC) out.worst.pay += 1; }
       if (r.category === "뷰티 상품" && r.urgency === "높음") {
         out.worst.skinTotal += 1; if (p.urgency !== "높음") out.worst.skin += 1;

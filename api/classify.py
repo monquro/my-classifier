@@ -151,16 +151,16 @@ class handler(BaseHTTPRequestHandler):
             n = int(self.headers.get("Content-Length", "0"))
             req = json.loads(self.rfile.read(min(n, 20000)).decode("utf-8"))
             if not isinstance(req, dict):
-                return self._send({"results": None, "reason": "요청 모양이 맞지 않습니다"})
+                return self._send({"results": None, "reason": "요청 모양이 맞지 않아요"})
             model = pick_model(req.get("model"))
             if model is None:
                 return self._send({"results": None,
-                                   "reason": "모델 이름이 올바르지 않습니다 — 영문 · 숫자 · . _ - 만, 64자까지"})
+                                   "reason": "모델 이름이 올바르지 않아요 — 영문 · 숫자 · . _ - 만, 64자까지"})
             raw = req.get("items")
             if not isinstance(raw, list) or not raw:
-                return self._send({"results": None, "reason": "보낸 문장이 없습니다"})
+                return self._send({"results": None, "reason": "보낸 문장이 없어요"})
             if len(raw) > MAX_ITEMS:
-                return self._send({"results": None, "reason": f"한 번에 {MAX_ITEMS}개까지만 받습니다"})
+                return self._send({"results": None, "reason": f"한 번에 {MAX_ITEMS}개까지만 받아요"})
             items = []
             for it in raw:
                 it = it if isinstance(it, dict) else {}
@@ -168,24 +168,24 @@ class handler(BaseHTTPRequestHandler):
                 items.append({"text": str(it.get("text", ""))[:MAX_LEN], "brand": brand})
             key = os.environ.get("GEMINI_API_KEY", "").strip()
             if not key:
-                return self._send({"results": None, "reason": "열쇠가 없습니다 — Vercel 환경 변수 GEMINI_API_KEY"})
+                return self._send({"results": None, "reason": "열쇠가 없어요 — Vercel 환경 변수 GEMINI_API_KEY"})
             c = load_criteria()
             answer = call_gemini(key, model, build_prompt(items, c))
             return self._send({"results": clean(answer, len(items), c), "model": model})
         except urllib.error.HTTPError as e:
-            why = {404: "모델 이름을 확인", 429: "무료 한도를 넘음 — 잠시 뒤 다시",
-                   500: "Gemini 쪽 오류 — 잠시 뒤 다시", 503: "Gemini가 붐빔 — 잠시 뒤 다시"}
+            why = {404: "모델 이름을 확인해 주세요.", 429: "무료 한도를 넘었어요. 잠시 뒤 다시 해 보세요.",
+                   500: "Gemini 쪽 오류예요. 잠시 뒤 다시 해 보세요.", 503: "Gemini가 붐벼요. 잠시 뒤 다시 해 보세요."}
             # Gemini 가 돌려준 오류 문장(열쇠는 들어 있지 않다)을 짧게 붙인다 — 400 의 원인을 알기 위해
             try:
                 detail = json.loads(e.read().decode("utf-8")).get("error", {}).get("message", "")[:160]
             except Exception:  # noqa: BLE001
                 detail = ""
             return self._send({"results": None, "model": model,
-                               "reason": f"AI 호출 실패 ({e.code}, {model}) — {why.get(e.code, '모델 이름 · 한도를 확인')}"
+                               "reason": f"AI 호출 실패 ({e.code}, {model}) — {why.get(e.code, '모델 이름과 한도를 확인해 주세요.')}"
                                          + (f" · {detail}" if detail else "")})
         except Exception as e:  # noqa: BLE001
             if is_timeout(e):
                 return self._send({"results": None, "timeout": True, "model": model,
-                                   "reason": f"AI가 {TIMEOUT}초 안에 답하지 않았습니다 — 모델({model})이 느리거나 혼잡합니다"})
+                                   "reason": f"AI가 {TIMEOUT}초 안에 답하지 않았어요 — 모델({model})이 느리거나 혼잡해요"})
             return self._send({"results": None, "model": model,
                                "reason": f"AI 호출 실패 ({model}) — {type(e).__name__}"})

@@ -30,7 +30,7 @@
 
   <div class="infobar">
     <div class="infobar-in">
-      <span>지어낸 문장으로 연습하는 화면이에요. 넣은 글은 이 창에만 있고, 새로 고치면 사라져요.</span>
+      <span>지어낸 문장으로 연습하는 화면이에요. 넣은 글은 이 창에만 남고 새로 고치면 사라져요.</span>
       <span id="owner">기준 불러오는 중…</span>
       <span id="model-now" aria-live="polite"></span>
     </div>
@@ -53,15 +53,15 @@
       <ul class="rows" id="rows"></ul>
       <div class="list-empty" id="list-empty">
         <p>아직 받은 글이 없어요.</p>
-        <p class="sub">가운데에서 새 글을 넣거나, 예시를 한 번에 넣어 보세요.</p>
-        <button type="button" class="btn" id="load-examples">예시 4개 넣어 보기</button>
+        <p class="sub">가운데에서 새 글을 넣거나 예시를 한 번에 넣어 보세요.</p>
+        <button type="button" class="btn" id="load-examples">예시 4개 넣기</button>
       </div>
     </section>
 
     <!-- 가운데: 새 글 + 선택한 글 -->
     <section class="center">
       <form id="form" class="panel compose" aria-labelledby="compose-h">
-        <h2 id="compose-h" class="panel-title">새 글 분류하기</h2>
+        <h2 id="compose-h" class="panel-title">새 글 분류</h2>
         <div class="field">
           <span class="field-label" id="brand-l">브랜드</span>
           <div class="seg" role="radiogroup" aria-labelledby="brand-l">
@@ -76,7 +76,7 @@
           <p class="help">이름 · 전화번호 · 이메일 · 주문번호는 가린 뒤 AI로 보내요. 실제 손님 정보는 넣지 마세요.</p>
         </div>
         <div class="compose-foot">
-          <button type="submit" class="btn primary">분류하기</button>
+          <button type="submit" class="btn primary">분류</button>
         </div>
       </form>
 
@@ -108,7 +108,7 @@
         </dl>
       </section>
       <details class="panel crit">
-        <summary>기준표 <span class="muted">칸 9개 · 긴급도 3단계</span></summary>
+        <summary>기준표 <span class="muted">칸 10개 · 긴급도 3단계</span></summary>
         <table class="tbl">
           <thead><tr><th class="num">순서</th><th>칸</th><th>뜻</th></tr></thead>
           <tbody id="crit-cats"></tbody>
@@ -121,7 +121,7 @@
       <details class="panel words">
         <summary>규칙이 쓰는 낱말</summary>
         <div class="words-body">
-          <p class="help">연습용 60개(data/practice.json)에서만 뽑았어요.</p>
+          <p class="help">연습용 63개(data/practice.json)에서만 뽑았어요.</p>
           <div id="words"></div>
         </div>
       </details>
@@ -139,7 +139,7 @@
         </div>
       </div>
       <div class="panel-body">
-        <p class="help">채점용 30개(data/answer.json)로 재요. 단추를 누를 때만 정답 파일을 열고, AI는 10개씩 세 번 보내요.</p>
+        <p class="help">채점용 30개(data/answer.json)로 재요. 정답 파일은 단추를 누를 때만 열고 AI에는 10개씩 세 번 보내요.</p>
         <p class="progress" id="progress" aria-live="polite"></p>
       </div>
       <div class="table-wrap">
