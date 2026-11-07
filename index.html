@@ -3,47 +3,94 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>매장 고객 글 분류기</title>
+  <meta name="theme-color" content="#2438f5">
+  <title>고객 글 분류기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <p class="practice"><b>연습용 화면이에요.</b> 지어낸 문장으로 연습하는 분류기예요. 넣은 문장은 저장하지 않아요.</p>
+
   <header class="top">
-    <h1>매장 고객 글 분류기</h1>
-    <p class="lead">리뷰 · DM · 댓글 한 줄을 넣으면 <b>칸 · 긴급도 · 이유</b>가 나와요. 개인정보는 먼저 가려요.</p>
-    <div class="model">
-      <label for="model-pick">AI 모델</label>
-      <select id="model-pick"></select>
-      <input id="model-custom" type="text" placeholder="모델 이름 (예: 영문 · 숫자 · . _ -)" autocomplete="off" spellcheck="false" hidden>
-      <p class="model-now" id="model-now" aria-live="polite"></p>
+    <div class="brandline">
+      <span class="mark" aria-hidden="true">W2</span>
+      <div>
+        <h1>고객 글 분류기<span class="dot">.</span></h1>
+        <p class="lead">리뷰 · DM · 댓글 한 줄 → <b>칸 · 긴급도 · 이유</b>. AI(Gemini)가 가르고, 안 되면 규칙으로 갈라요.</p>
+      </div>
     </div>
-    <nav class="tabs" role="tablist">
-      <button role="tab" id="tab-classify" aria-selected="true" aria-controls="panel-classify">분류</button>
-      <button role="tab" id="tab-score" aria-selected="false" aria-controls="panel-score">채점</button>
-    </nav>
+    <div class="bar">
+      <nav class="tabs" role="tablist" aria-label="화면">
+        <button role="tab" id="tab-classify" aria-selected="true" aria-controls="panel-classify">분류</button>
+        <button role="tab" id="tab-score" aria-selected="false" aria-controls="panel-score">채점</button>
+      </nav>
+      <div class="model">
+        <label for="model-pick">AI 모델</label>
+        <select id="model-pick"></select>
+        <input id="model-custom" type="text" placeholder="모델 이름 (영문 · 숫자 · . _ -)" autocomplete="off" spellcheck="false" hidden>
+        <p class="model-now" id="model-now" aria-live="polite"></p>
+      </div>
+    </div>
   </header>
 
   <main>
+    <!-- 분류 -->
     <section id="panel-classify" role="tabpanel" aria-labelledby="tab-classify">
-      <form id="form" class="card">
-        <fieldset class="brand">
-          <legend>브랜드</legend>
-          <label><input type="radio" name="brand" value="A" checked> A · 포토부스</label>
-          <label><input type="radio" name="brand" value="B"> B · 뷰티 + 스튜디오</label>
-          <label><input type="radio" name="brand" value="모름"> 모름</label>
-        </fieldset>
-        <label for="text" class="lbl">고객 글</label>
-        <textarea id="text" rows="3" placeholder="예) 카드 결제는 됐는데 사진이 안 나왔어요. 010-0000-1234"></textarea>
-        <button type="submit" class="go">분류하기</button>
-      </form>
-
-      <div id="result" class="card result" hidden aria-live="polite">
-        <p class="by" id="r-by"></p>
-        <p class="masked"><span class="k">가린 문장</span><span id="r-masked"></span></p>
-        <div class="pills">
-          <span class="pill cat" id="r-cat"></span>
-          <span class="pill" id="r-urg"></span>
+      <article class="card intro">
+        <div class="intro-head">
+          <h2>이렇게 쓰는 도구예요</h2>
+          <p class="owner" id="owner"></p>
         </div>
-        <p class="reason" id="r-reason"></p>
+        <p>두 브랜드 매장에 손님이 남긴 글 한 줄을 넣으면, <b>어느 칸</b>에 들어가는지와 <b>얼마나 급한지</b>, 그리고 그 <b>이유</b>가 나와요.</p>
+        <div class="legend">
+          <span class="legend-k">칸 <small>(왼쪽일수록 먼저)</small></span>
+          <div class="chips" id="legend-cats"></div>
+          <span class="legend-k">긴급도</span>
+          <div class="chips" id="legend-urg"></div>
+        </div>
+        <p class="warn">실제 손님 이름 · 전화번호 · 이메일 · 주문번호는 넣지 마세요.</p>
+      </article>
+
+      <div class="grid">
+        <form id="form" class="card step">
+          <h2><span class="num">01</span> 고객 글 넣기</h2>
+          <fieldset class="brand">
+            <legend>브랜드</legend>
+            <label><input type="radio" name="brand" value="A" checked> A · 포토부스</label>
+            <label><input type="radio" name="brand" value="B"> B · 뷰티 + 스튜디오</label>
+            <label><input type="radio" name="brand" value="모름"> 모름</label>
+          </fieldset>
+          <label for="text" class="lbl">고객 글 한 줄</label>
+          <textarea id="text" rows="4" placeholder="예) 카드 결제는 됐는데 사진이 안 나왔어요."></textarea>
+          <div class="examples">
+            <span class="lbl-s">예시 문장 — 누르면 위 칸에 들어가요</span>
+            <div class="chips" id="examples"></div>
+          </div>
+          <div class="send">
+            <button type="submit" class="go">분류하기</button>
+            <p class="safe">이름 · 전화번호 · 이메일 · 주문번호는 가린 뒤 AI로 보내요.</p>
+          </div>
+        </form>
+
+        <section class="card step out" aria-labelledby="out-h">
+          <h2 id="out-h"><span class="num">02</span> 결과</h2>
+          <div class="empty" id="empty">
+            <span class="empty-mark" aria-hidden="true">?</span>
+            <p><b>글을 넣으면 여기에 결과가 나와요.</b><br>칸 · 긴급도 · 이유를 보여 드려요.</p>
+          </div>
+          <div id="result" class="result" hidden aria-live="polite">
+            <p class="by" id="r-by"></p>
+            <div class="verdict">
+              <span class="pill cat" id="r-cat"></span>
+              <span class="pill" id="r-urg"></span>
+            </div>
+            <p class="masked"><span class="k">가린 문장</span><span id="r-masked"></span></p>
+            <p class="reason"><span class="k">이유</span><span id="r-reason"></span></p>
+          </div>
+        </section>
       </div>
 
       <details class="card words">
@@ -53,39 +100,47 @@
       </details>
     </section>
 
+    <!-- 채점 -->
     <section id="panel-score" role="tabpanel" aria-labelledby="tab-score" hidden>
-      <div class="card">
-        <p class="hint">채점용 30개(data/answer.json)를 갈라 정답과 비교해요. AI 채점은 10개씩 세 번 보내요.</p>
-        <div class="btns">
-          <button id="run-rules" class="go">규칙으로 채점</button>
-          <button id="run-ai" class="go alt">AI로 채점</button>
-        </div>
-        <p class="progress" id="progress" aria-live="polite"></p>
+      <p class="note">채점용 30개(data/answer.json)로 채점해요. 단추를 누를 때만 정답 파일을 열어요. AI는 10개씩 세 번 보내요.</p>
+      <div class="grid">
+        <article class="card board" id="board-rules">
+          <div class="board-head"><h2>규칙</h2><span class="tag">기준선</span></div>
+          <div class="stats" id="stats-rules"></div>
+          <button id="run-rules" class="go dark">규칙으로 채점</button>
+        </article>
+        <article class="card board" id="board-ai">
+          <div class="board-head"><h2>AI</h2><span class="tag" id="ai-model">Gemini</span></div>
+          <div class="stats" id="stats-ai"></div>
+          <button id="run-ai" class="go">AI로 채점</button>
+          <p class="progress" id="progress" aria-live="polite"></p>
+          <button id="download" class="go ghost" hidden>AI 채점 결과 내려받기</button>
+        </article>
       </div>
-      <div id="compare" class="card" hidden>
-        <h2>규칙 vs AI <small id="c-model"></small></h2>
-        <table class="tbl" id="c-table"></table>
-        <p class="hint" id="c-note"></p>
-        <button id="download" class="go alt">AI 채점 결과 내려받기</button>
-      </div>
+
       <div id="score" hidden>
         <h2 class="which" id="s-which"></h2>
-        <div class="stats" id="s-main"></div>
-        <div class="card">
-          <h2>가장 나쁜 실수</h2>
-          <ul class="worst" id="s-worst"></ul>
+        <div class="grid">
+          <div class="card">
+            <h3>가장 나쁜 실수</h3>
+            <ul class="worst" id="s-worst"></ul>
+          </div>
+          <div class="card">
+            <h3>브랜드별</h3>
+            <table class="tbl" id="s-brand"></table>
+          </div>
         </div>
         <div class="card">
-          <h2>브랜드별</h2>
-          <table class="tbl" id="s-brand"></table>
-        </div>
-        <div class="card">
-          <h2>틀린 문장 <small id="s-wrong-n"></small></h2>
+          <h3>틀린 문장 <small id="s-wrong-n"></small></h3>
           <ol class="wrong" id="s-wrong"></ol>
         </div>
       </div>
     </section>
   </main>
+
+  <footer class="foot">
+    <p>기준: <code>criteria.json</code> · 칸과 긴급도의 뜻은 <code>데이터명세.md</code> · 브랜드 이름은 A · B 로 가렸어요.</p>
+  </footer>
 
   <script src="mask.js"></script>
   <script src="rules.js"></script>
