@@ -52,6 +52,7 @@
       <p class="sim-note" id="sim-note" hidden aria-live="polite"></p>
       <div class="filters" role="group" aria-label="목록 거르기">
         <button type="button" data-f="all" aria-pressed="true">전체</button>
+        <button type="button" data-f="review" aria-pressed="false">확인 필요</button>
         <button type="button" data-f="open" aria-pressed="false">미완료</button>
         <button type="button" data-f="late" aria-pressed="false">기한 지남</button>
         <button type="button" data-f="높음" aria-pressed="false">높음</button>
@@ -113,6 +114,7 @@
           <section class="why">
             <h3 class="why-h">판정 이유 <span class="by" id="d-by"></span></h3>
             <p id="d-reason"></p>
+            <p class="d-edit" id="d-edit" hidden></p>
           </section>
         </div>
       </article>
@@ -123,6 +125,7 @@
       <section class="panel">
         <h2 class="panel-title">분류</h2>
         <dl class="prop-list" id="props">
+          <div class="review-row"><dt>사람 확인</dt><dd data-k="review">—</dd></div>
           <div><dt>칸</dt><dd data-k="cat">—</dd></div>
           <div><dt>긴급도</dt><dd data-k="urg">—</dd></div>
           <div><dt>답장 기한</dt><dd data-k="due">—</dd></div>
@@ -132,6 +135,7 @@
           <div><dt>매장</dt><dd data-k="store">—</dd></div>
           <div><dt>출처</dt><dd data-k="source">—</dd></div>
           <div><dt>판정</dt><dd data-k="by">—</dd></div>
+          <div class="edit-row"><dt>고치기</dt><dd data-k="edit">—</dd></div>
         </dl>
       </section>
       <details class="panel crit">
