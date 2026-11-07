@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>매장 고객 글 분류기</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>매장 고객 글 분류기</h1>
+    <p class="lead">리뷰 · DM · 댓글 한 줄을 넣으면 <b>칸 · 긴급도 · 이유</b>가 나와요. 개인정보는 먼저 가려요.</p>
+    <div class="model">
+      <label for="model-pick">AI 모델</label>
+      <select id="model-pick"></select>
+      <input id="model-custom" type="text" placeholder="모델 이름 (예: 영문 · 숫자 · . _ -)" autocomplete="off" spellcheck="false" hidden>
+      <p class="model-now" id="model-now" aria-live="polite"></p>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" id="tab-classify" aria-selected="true" aria-controls="panel-classify">분류</button>
+      <button role="tab" id="tab-score" aria-selected="false" aria-controls="panel-score">채점</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="panel-classify" role="tabpanel" aria-labelledby="tab-classify">
+      <form id="form" class="card">
+        <fieldset class="brand">
+          <legend>브랜드</legend>
+          <label><input type="radio" name="brand" value="A" checked> A · 포토부스</label>
+          <label><input type="radio" name="brand" value="B"> B · 뷰티 + 스튜디오</label>
+          <label><input type="radio" name="brand" value="모름"> 모름</label>
+        </fieldset>
+        <label for="text" class="lbl">고객 글</label>
+        <textarea id="text" rows="3" placeholder="예) 카드 결제는 됐는데 사진이 안 나왔어요. 010-0000-1234"></textarea>
+        <button type="submit" class="go">분류하기</button>
+      </form>
+
+      <div id="result" class="card result" hidden aria-live="polite">
+        <p class="by" id="r-by"></p>
+        <p class="masked"><span class="k">가린 문장</span><span id="r-masked"></span></p>
+        <div class="pills">
+          <span class="pill cat" id="r-cat"></span>
+          <span class="pill" id="r-urg"></span>
+        </div>
+        <p class="reason" id="r-reason"></p>
+      </div>
+
+      <details class="card words">
+        <summary>규칙이 쓰는 낱말 보기</summary>
+        <p class="hint">낱말은 연습용 60개(data/practice.json)에서만 뽑았어요. 칸마다 어느 문장에서 뽑았는지 예를 둘씩 붙였어요.</p>
+        <div id="words"></div>
+      </details>
+    </section>
+
+    <section id="panel-score" role="tabpanel" aria-labelledby="tab-score" hidden>
+      <div class="card">
+        <p class="hint">채점용 30개(data/answer.json)를 갈라 정답과 비교해요. AI 채점은 10개씩 세 번 보내요.</p>
+        <div class="btns">
+          <button id="run-rules" class="go">규칙으로 채점</button>
+          <button id="run-ai" class="go alt">AI로 채점</button>
+        </div>
+        <p class="progress" id="progress" aria-live="polite"></p>
+      </div>
+      <div id="compare" class="card" hidden>
+        <h2>규칙 vs AI <small id="c-model"></small></h2>
+        <table class="tbl" id="c-table"></table>
+        <p class="hint" id="c-note"></p>
+        <button id="download" class="go alt">AI 채점 결과 내려받기</button>
+      </div>
+      <div id="score" hidden>
+        <h2 class="which" id="s-which"></h2>
+        <div class="stats" id="s-main"></div>
+        <div class="card">
+          <h2>가장 나쁜 실수</h2>
+          <ul class="worst" id="s-worst"></ul>
+        </div>
+        <div class="card">
+          <h2>브랜드별</h2>
+          <table class="tbl" id="s-brand"></table>
+        </div>
+        <div class="card">
+          <h2>틀린 문장 <small id="s-wrong-n"></small></h2>
+          <ol class="wrong" id="s-wrong"></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="mask.js"></script>
+  <script src="rules.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

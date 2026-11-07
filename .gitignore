@@ -1,0 +1,10 @@
+# 비밀 — 저장소에 넣지 않는다
+.env
+.env.*
+!.env.example
+
+# 배포 · 실행 부산물
+.vercel/
+__pycache__/
+*.pyc
+.DS_Store
