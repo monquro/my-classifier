@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "api/classify.py": { "includeFiles": "criteria.json", "maxDuration": 60 }
+  }
+}

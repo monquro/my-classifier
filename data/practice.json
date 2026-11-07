@@ -1,0 +1,422 @@
+[
+  {
+    "id": "P01",
+    "brand": "A",
+    "text": "카드 결제는 됐는데 사진이 한 장도 안 나왔어요. 환불해 주세요.",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P02",
+    "brand": "A",
+    "text": "Charged twice for one session, please refund the extra.",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P03",
+    "brand": "A",
+    "text": "현금 넣었는데 기계가 돈을 먹고 시작을 안 해요.",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P04",
+    "brand": "A",
+    "text": "환불 요청합니다. 출력이 안 됐는데 결제는 빠졌어요. 연락처 010-0000-1234",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P05",
+    "brand": "A",
+    "text": "쿠폰 적용이 안 돼서 정가로 결제됐어요. 차액 돌려받을 수 있나요?",
+    "category": "결제·환불",
+    "urgency": "보통"
+  },
+  {
+    "id": "P06",
+    "brand": "A",
+    "text": "Me cobraron pero no salieron las fotos.",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P07",
+    "brand": "A",
+    "text": "앱 결제 완료 화면까지 봤는데 부스가 안 켜졌어요. 주문번호 PD-48213",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P08",
+    "brand": "A",
+    "text": "사진은 예뻤는데 결제가 두 번 된 것 같아요.",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P09",
+    "brand": "A",
+    "text": "QR 찍었더니 제 사진이 아니라 다른 사람 사진이 떠요.",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "P10",
+    "brand": "A",
+    "text": "공유 링크를 누가 단톡방에 올렸는데 제 사진이 다 보여요. 삭제해 주세요.",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "P11",
+    "brand": "A",
+    "text": "Please delete my photos from your server, I don't want them stored.",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "P12",
+    "brand": "A",
+    "text": "부스에 이전 손님 사진이 화면에 그대로 남아 있었어요.",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "P13",
+    "brand": "A",
+    "text": "제 사진이 매장 인스타에 동의 없이 올라갔어요. 내려 주세요.",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "P14",
+    "brand": "A",
+    "text": "QR 링크가 아무나 열 수 있는 건가요? 저 말고 친구도 열리던데 불안해요.",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "P15",
+    "brand": "A",
+    "text": "박지민인데요, 어제 찍은 사진 원본 파일 지워 주실 수 있나요?",
+    "category": "사진·개인정보",
+    "urgency": "보통"
+  },
+  {
+    "id": "P16",
+    "brand": "A",
+    "text": "부스 화면이 중간에 꺼졌어요.",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "P17",
+    "brand": "A",
+    "text": "터치가 안 먹어서 프레임을 못 골랐어요.",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "P18",
+    "brand": "A",
+    "text": "The camera froze after the second shot.",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "P19",
+    "brand": "A",
+    "text": "2번 부스 버튼이 고장이에요. 직원분께 말했는데 아직 그대로예요.",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "P20",
+    "brand": "A",
+    "text": "La impresora no funciona en la cabina 3.",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "P21",
+    "brand": "A",
+    "text": "QR 찍었는데 영상 파일이 다운로드 중에서 멈춰요.",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "P22",
+    "brand": "A",
+    "text": "사진이 너무 어둡게 나왔어요.",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "P23",
+    "brand": "A",
+    "text": "사진이 흐릿하게 나왔어요. 초점이 안 맞은 것 같아요.",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "P24",
+    "brand": "A",
+    "text": "출력물 가장자리가 잘려서 친구 얼굴이 반만 나왔어요.",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "P25",
+    "brand": "A",
+    "text": "Prints came out blurry and kind of washed out.",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "P26",
+    "brand": "A",
+    "text": "필터가 너무 과해서 다들 얼굴이 하얗게 날아갔어요.",
+    "category": "사진 품질",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P27",
+    "brand": "A",
+    "text": "주말에 40분 기다렸어요. 대기 줄 관리가 필요해요.",
+    "category": "매장 경험",
+    "urgency": "보통"
+  },
+  {
+    "id": "P28",
+    "brand": "A",
+    "text": "직원이 없으니까 줄 새치기하는 사람이 있어도 아무도 안 말려요.",
+    "category": "매장 경험",
+    "urgency": "보통"
+  },
+  {
+    "id": "P29",
+    "brand": "A",
+    "text": "You can't retake a single shot, one bad blink and the strip is ruined.",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P30",
+    "brand": "A",
+    "text": "촬영 간격이 너무 빨라서 소품 바꿀 틈이 없었어요.",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P31",
+    "brand": "A",
+    "text": "한 장에 12달러는 좀 비싼 것 같아요.",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P32",
+    "brand": "A",
+    "text": "매장 바닥이 젖어 있어서 미끄러질 뻔했어요.",
+    "category": "매장 경험",
+    "urgency": "높음"
+  },
+  {
+    "id": "P33",
+    "brand": "A",
+    "text": "Los accesorios estaban sucios y rotos.",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P34",
+    "brand": "A",
+    "text": "생일 파티로 10명 예약 돼요?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P35",
+    "brand": "A",
+    "text": "영업시간이 어떻게 되나요? 일요일도 해요?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P36",
+    "brand": "A",
+    "text": "4컷 한 번에 얼마예요?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P37",
+    "brand": "A",
+    "text": "Do you take walk-ins or do I need a reservation?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P38",
+    "brand": "A",
+    "text": "다음 방문 무료 쿠폰 받았는데 주말에도 쓸 수 있어요?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P39",
+    "brand": "A",
+    "text": "환불은 어떻게 받나요? 혹시 몰라서 미리 여쭤봐요.",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P40",
+    "brand": "A",
+    "text": "¿Cuánto cuesta una sesión para cuatro personas?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P41",
+    "brand": "A",
+    "text": "프레임 너무 귀여워요, 또 올게요!",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P42",
+    "brand": "A",
+    "text": "Best photo booth in town, the lighting is perfect!",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P43",
+    "brand": "A",
+    "text": "촬영하는 동안 영상까지 찍혀서 따로 받을 수 있는 게 최고예요.",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P44",
+    "brand": "A",
+    "text": "Me encantó, las fotos salieron hermosas.",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P45",
+    "brand": "A",
+    "text": "옆 가게 카페 추천해 주실 수 있나요? 커피 마시고 오려고요.",
+    "category": "기타",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P46",
+    "brand": "A",
+    "text": "ㅋㅋㅋㅋ",
+    "category": "기타",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P47",
+    "brand": "A",
+    "text": "Follow for follow?",
+    "category": "기타",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P48",
+    "brand": "A",
+    "text": "몰 안에서 매장 찾느라 한참 돌아다녔어요. 안내판이 없어요.",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P49",
+    "brand": "B",
+    "text": "화장품 계산했는데 영수증에 같은 금액이 두 번 찍혀 있어요.",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "P50",
+    "brand": "B",
+    "text": "매장에서 써 본 스킨케어 샘플 때문에 얼굴이 빨갛게 올라왔어요.",
+    "category": "뷰티 상품",
+    "urgency": "높음"
+  },
+  {
+    "id": "P51",
+    "brand": "B",
+    "text": "오늘 산 크림이 유통기한 지난 제품이었어요.",
+    "category": "뷰티 상품",
+    "urgency": "보통"
+  },
+  {
+    "id": "P52",
+    "brand": "B",
+    "text": "The lip tint I bought was already opened and used.",
+    "category": "뷰티 상품",
+    "urgency": "보통"
+  },
+  {
+    "id": "P53",
+    "brand": "B",
+    "text": "집에 와서 보니 쿠션 팩트가 깨져 있었어요. 교환되나요?",
+    "category": "뷰티 상품",
+    "urgency": "보통"
+  },
+  {
+    "id": "P54",
+    "brand": "B",
+    "text": "La mascarilla me dio alergia en los ojos.",
+    "category": "뷰티 상품",
+    "urgency": "높음"
+  },
+  {
+    "id": "P55",
+    "brand": "B",
+    "text": "퍼스널컬러 진단 예약은 어떻게 해요?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P56",
+    "brand": "B",
+    "text": "Is this sunscreen okay for sensitive skin?",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P57",
+    "brand": "B",
+    "text": "퍼스널컬러 진단을 너무 대충 해 주셔서 실망했어요.",
+    "category": "매장 경험",
+    "urgency": "보통"
+  },
+  {
+    "id": "P58",
+    "brand": "B",
+    "text": "진열된 테스터가 다 뚜껑이 열려 있고 지저분해요.",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "P59",
+    "brand": "B",
+    "text": "스튜디오 조명이 너무 세서 다들 얼굴이 하얗게 날아갔어요.",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "P60",
+    "brand": "B",
+    "text": "화장품 사고 바로 사진까지 찍고, 한 번에 해결돼서 너무 좋아요!",
+    "category": "칭찬",
+    "urgency": "낮음"
+  }
+]

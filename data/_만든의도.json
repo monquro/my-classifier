@@ -1,0 +1,182 @@
+[
+  {
+    "id": "S01",
+    "brand": "A",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S02",
+    "brand": "B",
+    "category": "뷰티 상품",
+    "urgency": "보통"
+  },
+  {
+    "id": "S03",
+    "brand": "B",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "S04",
+    "brand": "B",
+    "category": "뷰티 상품",
+    "urgency": "높음"
+  },
+  {
+    "id": "S05",
+    "brand": "A",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S06",
+    "brand": "A",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S07",
+    "brand": "A",
+    "category": "기타",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S08",
+    "brand": "A",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "S09",
+    "brand": "A",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "S10",
+    "brand": "B",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S11",
+    "brand": "A",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "S12",
+    "brand": "A",
+    "category": "매장 경험",
+    "urgency": "보통"
+  },
+  {
+    "id": "S13",
+    "brand": "A",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "S14",
+    "brand": "B",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S15",
+    "brand": "A",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S16",
+    "brand": "A",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S17",
+    "brand": "A",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "S18",
+    "brand": "A",
+    "category": "매장 경험",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S19",
+    "brand": "A",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "S20",
+    "brand": "B",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S21",
+    "brand": "A",
+    "category": "문의",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S22",
+    "brand": "A",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "S23",
+    "brand": "A",
+    "category": "결제·환불",
+    "urgency": "높음"
+  },
+  {
+    "id": "S24",
+    "brand": "A",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S25",
+    "brand": "A",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "S26",
+    "brand": "A",
+    "category": "사진·개인정보",
+    "urgency": "높음"
+  },
+  {
+    "id": "S27",
+    "brand": "A",
+    "category": "기계 고장",
+    "urgency": "보통"
+  },
+  {
+    "id": "S28",
+    "brand": "A",
+    "category": "사진 품질",
+    "urgency": "보통"
+  },
+  {
+    "id": "S29",
+    "brand": "A",
+    "category": "칭찬",
+    "urgency": "낮음"
+  },
+  {
+    "id": "S30",
+    "brand": "A",
+    "category": "매장 경험",
+    "urgency": "높음"
+  }
+]
