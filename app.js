@@ -34,8 +34,30 @@
   const load = p => fetch(p, { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(p); return r.json(); });
   Promise.all([load("criteria.json"), load("keywords.json")]).then(([c, k]) => {
     C = c; K = k;
+    renderIntro();
     renderWords();
   }).catch(e => { $("#words").textContent = "기준 파일을 읽지 못했어요: " + e.message; });
+
+  /* 소개 카드 — 누가 정한 기준인지, 칸 · 긴급도 범례, 예시 문장. 모두 criteria.json 에서 */
+  function renderIntro() {
+    $("#owner").textContent = `${C.owner} · 기준 version ${C.version}`;
+    const order = [...C.categories].sort((a, b) => a.order - b.order);
+    $("#legend-cats").innerHTML = order.map(c => `<span class="chip" title="${esc(c.def)}">${esc(c.name)}</span>`).join("");
+    $("#legend-urg").innerHTML = C.urgency.map(u =>
+      `<span class="chip u-${esc(u.level)}" title="${esc(u.def)}">${esc(u.level)} · ${esc(u.reply)}</span>`).join("");
+    // 예시는 기준 파일의 «예»에서 고른다 — 채점용 문장은 쓰지 않는다
+    const picks = order.filter(c => [1, 3, 7, 8].includes(c.order));
+    $("#examples").innerHTML = picks.map(c =>
+      `<button type="button" class="chip" data-brand="${c.name === "뷰티 상품" ? "B" : "A"}">${esc(c.example)}</button>`).join("");
+    $("#examples").addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      $("#text").value = b.textContent;
+      const radio = document.querySelector(`input[name="brand"][value="${b.dataset.brand}"]`);
+      if (radio) radio.checked = true;
+      $("#text").focus();
+    });
+  }
 
   /* 탭 */
   const tabs = [...document.querySelectorAll('[role="tab"]')];
@@ -126,6 +148,7 @@
     u.textContent = "긴급도 " + r.urgency;
     u.className = "pill u-" + r.urgency;
     $("#r-reason").textContent = r.reason + (rule.found.length ? ` · 가린 것 ${rule.found.length}개` : "");
+    $("#empty").hidden = true;
     $("#result").hidden = false;
     btn.disabled = false;
   });
@@ -201,9 +224,7 @@
 
   function renderScore(s, who) {
     const n = s.n;
-    $("#s-which").textContent = `${who} 채점 결과`;
-    $("#s-main").innerHTML = [["칸", s.category], ["긴급도", s.urgency], ["둘 다", s.both]]
-      .map(([k, v]) => `<div class="stat"><b>${v}<small>/${n}</small></b><span>${k} 맞음</span></div>`).join("");
+    $("#s-which").textContent = `${who} 자세히 (${n}문장)`;
     const w = s.worst;
     $("#s-worst").innerHTML = `
       <li>결제·환불을 다른 칸으로 — <span class="${w.pay ? "bad" : ""}">${w.pay}개</span> / ${w.payTotal}문장 중</li>
@@ -222,25 +243,23 @@
     $("#score").hidden = false;
   }
 
-  /* 규칙과 AI 를 한 표에 */
-  function renderCompare() {
-    const R = LAST.rules, A = LAST.ai;
-    if (!R || !A) return;
-    const n = R.n;
-    const rows = [
-      ["칸 맞음", `${R.category}/${n}`, `${A.category}/${n}`],
-      ["긴급도 맞음", `${R.urgency}/${n}`, `${A.urgency}/${n}`],
-      ["둘 다 맞음", `${R.both}/${n}`, `${A.both}/${n}`],
-      ["결제·환불 놓침", `${R.worst.pay}/${R.worst.payTotal}`, `${A.worst.pay}/${A.worst.payTotal}`],
-      ["피부 반응 놓침", `${R.worst.skin}/${R.worst.skinTotal}`, `${A.worst.skin}/${A.worst.skinTotal}`],
-      ["AI 답 없음", "—", `${A.missing}`],
-    ];
-    $("#c-model").textContent = "";
-    $("#c-table").innerHTML = `<tr><th></th><th>규칙</th><th>${esc(LAST.model ? `AI · ${LAST.model}` : "AI")}</th></tr>` +
-      rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
-    $("#c-note").textContent = "AI는 같은 문장에도 답이 조금씩 달라질 수 있어요. 두 번 재서 흔들림을 함께 적어요.";
-    $("#compare").hidden = false;
+  /* 규칙 · AI 점수판 — 나란히 두고, 아직 안 쟀으면 «—» */
+  function stats(s) {
+    const box = (k, v, total, sub, warn) => `<div class="stat${warn ? " warn-stat" : ""}"><span class="s-k">${k}</span>
+      <span class="s-v">${v}${total != null ? `<small>/${total}</small>` : ""}</span><span class="s-sub">${sub}</span></div>`;
+    if (!s) return ["칸 맞음", "긴급도 맞음", "둘 다 맞음", "결제·환불 놓침"].map(k => box(k, "—", null, "아직 안 쟀어요")).join("");
+    const w = s.worst;
+    return box("칸 맞음", s.category, s.n, "") + box("긴급도 맞음", s.urgency, s.n, "") +
+      box("둘 다 맞음", s.both, s.n, s.missing ? `AI 답 없음 ${s.missing}개 포함` : "") +
+      box("결제·환불 놓침", w.pay, w.payTotal, `피부 반응 놓침 ${w.skin}/${w.skinTotal}`, w.pay > 0);
   }
+  function renderCompare() {
+    $("#stats-rules").innerHTML = stats(LAST.rules);
+    $("#stats-ai").innerHTML = stats(LAST.ai);
+    $("#ai-model").textContent = LAST.model ? `AI · ${LAST.model}` : "Gemini";
+    $("#download").hidden = !LAST.aiRaw;
+  }
+  renderCompare();
 
   $("#download").addEventListener("click", () => {
     if (!LAST.aiRaw) return;
