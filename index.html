@@ -18,6 +18,7 @@
       </div>
       <nav class="tabs" role="tablist" aria-label="화면">
         <button role="tab" id="tab-classify" aria-selected="true" aria-controls="panel-classify">받은 글</button>
+        <button role="tab" id="tab-dash" aria-selected="false" aria-controls="panel-dash">대시보드</button>
         <button role="tab" id="tab-score" aria-selected="false" aria-controls="panel-score">채점</button>
       </nav>
       <div class="model">
@@ -152,6 +153,45 @@
         </div>
       </details>
     </aside>
+  </main>
+
+  <!-- 대시보드 — 이 창에 쌓인 글로 계산 -->
+  <main id="panel-dash" role="tabpanel" aria-labelledby="tab-dash" class="dash" hidden>
+    <div class="dash-head">
+      <div>
+        <h2>처리 현황</h2>
+        <p class="help" id="dash-note">이 창에 쌓인 글로 계산해요. 새로 고치면 사라져요.</p>
+      </div>
+      <button type="button" class="btn" id="dash-sim">가상 수집 시작</button>
+    </div>
+    <div class="dash-empty panel" id="dash-empty">
+      <p><b>아직 받은 글이 없어요.</b></p>
+      <p class="help">«가상 수집 시작»을 누르면 여러 채널에서 글이 들어오면서 이 화면이 바로바로 채워져요.</p>
+    </div>
+    <div id="dash-body" hidden>
+      <div class="tiles" id="tiles"></div>
+      <div class="dash-grid">
+        <section class="panel">
+          <div class="panel-head"><h3>부서별 쌓인 글</h3>
+            <span class="legend" aria-hidden="true"><i class="sw s1"></i>접수<i class="sw s2"></i>처리 중<i class="sw s3"></i>완료</span></div>
+          <div class="table-wrap">
+            <table class="tbl team">
+              <thead><tr><th>담당</th><th class="num">전체</th><th class="num">접수</th><th class="num">처리 중</th><th class="num">완료</th><th class="num">기한 지남</th><th class="barcol">진행</th></tr></thead>
+              <tbody id="team-rows"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h3>지금 먼저 볼 글</h3><span class="muted small">미완료 · 급한 순</span></div>
+          <ol class="urgent" id="urgent"></ol>
+        </section>
+      </div>
+      <div class="dash-three">
+        <section class="panel"><div class="panel-head"><h3>칸별</h3></div><div class="bars" id="by-cat"></div></section>
+        <section class="panel"><div class="panel-head"><h3>채널별</h3></div><div class="bars" id="by-source"></div></section>
+        <section class="panel"><div class="panel-head"><h3>매장별</h3></div><div class="bars" id="by-store"></div></section>
+      </div>
+    </div>
   </main>
 
   <!-- 채점 -->

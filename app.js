@@ -234,6 +234,7 @@
         <span class="m">${x.sim ? '<span class="virt">가상</span>' : ""}${esc(x.source)} · ${esc(x.store)} · ${stamp(x.at)}</span>
       </button></li>`).join("") || (ITEMS.length ? `<li class="list-empty"><p>이 조건에 맞는 글이 없어요.</p></li>` : "");
     renderDetail(ITEMS.find(x => x.id === SEL));
+    renderDash();
   }
 
   function renderDetail(x) {
@@ -297,7 +298,9 @@
     SIM_ON = false; clearTimeout(SIM_T);
     $("#sim").setAttribute("aria-pressed", "false");
     $("#sim").textContent = "가상 수집";
+    $("#dash-sim").textContent = "가상 수집 시작";
     $("#sim-note").textContent = msg;
+    $("#dash-note").textContent = `${msg} 이 창에 쌓인 글로 계산해요. 새로 고치면 사라져요.`;
   }
   $("#sim").addEventListener("click", async () => {
     if (SIM_ON) { simStop(`가상 수집 멈춤 — ${FEED_I}/${FEED.length}건까지 들어왔어요.`); return; }
@@ -307,9 +310,81 @@
     SIM_ON = true;
     $("#sim").setAttribute("aria-pressed", "true");
     $("#sim").textContent = "멈춤";
+    $("#dash-sim").textContent = "가상 수집 멈춤";
     $("#sim-note").hidden = false;
     simTick();
   });
+
+  /* 대시보드 — 이 창에 쌓인 글(ITEMS)로만 계산한다. 저장하지 않는다 */
+  $("#dash-sim").addEventListener("click", () => $("#sim").click());
+  $("#urgent").addEventListener("click", e => {
+    const b = e.target.closest("button[data-id]");
+    if (!b) return;
+    SEL = +b.dataset.id;
+    $("#tab-classify").click();
+    renderInbox();
+  });
+
+  function count(list, key) {
+    const m = new Map();
+    list.forEach(x => m.set(key(x), (m.get(key(x)) || 0) + 1));
+    return m;
+  }
+  function bars(el, rows) {
+    const max = Math.max(1, ...rows.map(r => r[1]));
+    el.innerHTML = rows.map(([label, n]) => `<div class="bar-row${n ? "" : " zero"}" title="${esc(label)} ${n}건">
+        <span class="lab">${esc(label)}</span>
+        <span class="track"><span class="fill" style="display:block;width:${(n / max) * 100}%"></span></span>
+        <span class="n">${n}</span></div>`).join("");
+  }
+
+  function renderDash() {
+    const N = ITEMS.length;
+    $("#dash-empty").hidden = N > 0;
+    $("#dash-body").hidden = !N;
+    if (!N || !C) return;
+    const open = ITEMS.filter(x => x.state !== "완료");
+    const late = ITEMS.filter(isLate);
+    const hiOpen = open.filter(x => x.urgency === "높음");
+    const todayDue = open.filter(x => x.due && x.due.toDateString() === new Date().toDateString());
+    const sim = ITEMS.filter(x => x.sim).length;
+    const tile = (k, v, sub, alert) => `<div class="tile${alert ? " alert" : ""}"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${sub}</span></div>`;
+    $("#tiles").innerHTML =
+      tile("받은 글", N, sim ? `가상 수집 ${sim}건 포함` : "직접 넣은 글") +
+      tile("미완료", open.length, `완료 ${N - open.length}건`) +
+      tile("높음 · 미완료", hiOpen.length, "오늘 안에 답장", hiOpen.length > 0) +
+      tile("오늘 답장할 글", todayDue.length, "기한이 오늘 23:59") +
+      tile("기한 지남", late.length, late.length ? "바로 확인 필요" : "없음", late.length > 0);
+
+    // 부서별 — 칸 순서대로, 글이 있는 담당만
+    const order = [...C.categories].sort((a, b) => a.order - b.order);
+    const teams = [...new Set(order.map(c => c.team))].filter(t => ITEMS.some(x => x.team === t));
+    const maxT = Math.max(1, ...teams.map(t => ITEMS.filter(x => x.team === t).length));
+    $("#team-rows").innerHTML = teams.map(t => {
+      const L = ITEMS.filter(x => x.team === t);
+      const n = st => L.filter(x => x.state === st).length;
+      const a = n("접수"), b = n("처리 중"), d = n("완료"), lt = L.filter(isLate).length;
+      const w = v => `${(v / maxT) * 100}%`;
+      return `<tr><td>${esc(t)}</td><td class="num">${L.length}</td><td class="num">${a}</td><td class="num">${b}</td><td class="num">${d}</td>
+        <td class="num ${lt ? "late-n" : ""}">${lt}</td>
+        <td><span class="stack" role="img" aria-label="${esc(t)} — 접수 ${a}, 처리 중 ${b}, 완료 ${d}">${
+          [[a, "s1", "접수"], [b, "s2", "처리 중"], [d, "s3", "완료"]].filter(([v]) => v)
+            .map(([v, c, lab]) => `<span class="seg ${c}" style="width:${w(v)}" title="${lab} ${v}건"></span>`).join("")}</span></td></tr>`;
+    }).join("");
+
+    // 지금 먼저 볼 글 — 미완료 중 급한 순 5개
+    const top = open.slice().sort((a, b) => (RANK[a.urgency] - RANK[b.urgency])
+      || ((catOf(a.category).order || 99) - (catOf(b.category).order || 99)) || (a.due - b.due)).slice(0, 5);
+    $("#urgent").innerHTML = top.length ? top.map(x => `<li><button type="button" data-id="${x.id}">
+        <span class="t">${esc(x.masked)}</span>
+        <span class="m"><span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span>${esc(x.category)} · ${esc(x.team)} · ${esc(dueText(x))}${isLate(x) ? ' · <span class="late">기한 지남</span>' : ""}</span>
+      </button></li>`).join("") : `<li class="none">미완료 글이 없어요.</li>`;
+
+    const cats = count(ITEMS, x => x.category);
+    bars($("#by-cat"), order.map(c => [c.name, cats.get(c.name) || 0]));
+    bars($("#by-source"), [...count(ITEMS, x => x.source)].sort((a, b) => b[1] - a[1]));
+    bars($("#by-store"), [...count(ITEMS, x => x.store)].sort((a, b) => b[1] - a[1]));
+  }
 
   renderInbox();
 
