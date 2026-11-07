@@ -1,0 +1,21 @@
+{
+  "note": "가상 수집용 문장 — 모두 지어낸 것이다. 연습용 · 채점용과 다른 문장이고, 채점에는 쓰지 않는다. 이름 · 번호도 가짜.",
+  "items": [
+    { "source": "구글 리뷰", "store": "A 1호점", "brand": "A", "text": "사진은 예쁜데 프린터에서 종이가 반쯤 걸려서 찢어져 나왔어요." },
+    { "source": "인스타그램 댓글", "store": "온라인 · 매장 모름", "brand": "A", "text": "이번 달 프레임 진짜 귀엽다 ㅠㅠ 주말에 친구랑 갈게요" },
+    { "source": "DM", "store": "A 2호점", "brand": "A", "text": "어제 결제는 두 번 됐는데 사진은 한 번만 나왔어요. 확인 부탁드려요. 010-0000-5678" },
+    { "source": "매장 QR 피드백", "store": "B 1호점", "brand": "B", "text": "선크림 테스터 뚜껑이 없어서 좀 비위생적으로 보였어요." },
+    { "source": "Yelp 리뷰", "store": "A 1호점", "brand": "A", "text": "Booth door handle came off and almost hit my kid's face." },
+    { "source": "틱톡 댓글", "store": "온라인 · 매장 모름", "brand": "A", "text": "How much is it for 2 people?" },
+    { "source": "구글 리뷰", "store": "B 1호점", "brand": "B", "text": "산 토너가 이미 개봉돼 있었어요. 교환 가능한가요?" },
+    { "source": "DM", "store": "A 3호점", "brand": "A", "text": "QR로 받은 링크를 열었는데 모르는 사람들 사진이 같이 떠요." },
+    { "source": "매장 QR 피드백", "store": "A 2호점", "brand": "A", "text": "카운트다운이 너무 빨라서 다들 눈 감고 찍혔어요." },
+    { "source": "인스타그램 댓글", "store": "온라인 · 매장 모름", "brand": "A", "text": "Please open one in Austin!!" },
+    { "source": "이메일", "store": "B 1호점", "brand": "B", "text": "새로 산 립 제품 쓰고 입술이 부어올랐어요. 성분표를 받을 수 있을까요?" },
+    { "source": "구글 리뷰", "store": "A 3호점", "brand": "A", "text": "직원분이 소품 정리를 계속 해 주셔서 깔끔하고 좋았어요." },
+    { "source": "Yelp 리뷰", "store": "A 2호점", "brand": "A", "text": "Screen went black right after I paid. No photos, no refund yet." },
+    { "source": "DM", "store": "B 1호점", "brand": "B", "text": "퍼스널컬러 진단 주말 예약 아직 남았나요?" },
+    { "source": "매장 QR 피드백", "store": "A 1호점", "brand": "A", "text": "부스 안 조명이 깜빡거려서 사진 색이 다 달라요." },
+    { "source": "틱톡 댓글", "store": "온라인 · 매장 모름", "brand": "모름", "text": "ㅋㅋㅋ 이거 우리 동네에도 있음" }
+  ]
+}

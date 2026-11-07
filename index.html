@@ -44,9 +44,11 @@
         <h2 id="list-h">받은 글 <span class="count" id="count">0건</span></h2>
         <span class="list-tools">
           <span class="hi-count" id="hi-count" hidden></span>
+          <button type="button" class="btn sm" id="sim" aria-pressed="false" title="지어낸 글이 여러 채널에서 들어오는 모습을 흉내 내요">가상 수집</button>
           <button type="button" class="btn sm" id="export" disabled>CSV</button>
         </span>
       </div>
+      <p class="sim-note" id="sim-note" hidden aria-live="polite"></p>
       <div class="filters" role="group" aria-label="목록 거르기">
         <button type="button" data-f="all" aria-pressed="true">전체</button>
         <button type="button" data-f="open" aria-pressed="false">미완료</button>
@@ -58,7 +60,7 @@
       <ul class="rows" id="rows"></ul>
       <div class="list-empty" id="list-empty">
         <p>아직 받은 글이 없어요.</p>
-        <p class="sub">가운데에서 새 글을 넣거나 예시를 한 번에 넣어 보세요.</p>
+        <p class="sub">가운데에서 새 글을 넣거나, 위의 «가상 수집»으로 여러 채널에서 글이 들어오는 모습을 볼 수 있어요.</p>
         <button type="button" class="btn" id="load-examples">예시 넣기</button>
       </div>
     </section>

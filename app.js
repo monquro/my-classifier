@@ -231,7 +231,7 @@
         <span class="t">${esc(x.masked)}</span>
         <span class="m"><span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span><span class="cat">${esc(x.category)}</span>
           <span class="state s-${esc(x.state.replace(" ", ""))}">${esc(x.state)}</span>${isLate(x) ? '<span class="late">기한 지남</span>' : ""}</span>
-        <span class="m">${esc(x.source)} · ${esc(x.store)} · ${stamp(x.at)}</span>
+        <span class="m">${x.sim ? '<span class="virt">가상</span>' : ""}${esc(x.source)} · ${esc(x.store)} · ${stamp(x.at)}</span>
       </button></li>`).join("") || (ITEMS.length ? `<li class="list-empty"><p>이 조건에 맞는 글이 없어요.</p></li>` : "");
     renderDetail(ITEMS.find(x => x.id === SEL));
   }
@@ -275,6 +275,42 @@
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
+  /* 가상 수집 — 지어낸 글(data/demo_feed.json)이 여러 채널에서 몇 초마다 들어오는 모습을 흉내 낸다.
+   * 실제 채널과 연결하지 않는다. 출처 · 매장 · 받은 시각은 자동으로 붙고, 들어오는 대로 분류한다.
+   * AI 무료 한도를 아끼려고 두 개씩 묶어 보내고, 목록을 다 쓰면 멈춘다. */
+  const SIM_EVERY = 7000, SIM_BATCH = 2;
+  let FEED = null, FEED_I = 0, SIM_ON = false, SIM_T = null;
+  async function simTick() {
+    if (!SIM_ON) return;
+    if (FEED_I >= FEED.length) { simStop(`가상 수집 끝 — ${FEED.length}건이 들어왔어요.`); return; }
+    const part = FEED.slice(FEED_I, FEED_I + SIM_BATCH);
+    FEED_I += part.length;
+    $("#sim-note").textContent = `가상 수집 중… ${part.map(x => x.source).join(" · ")}에서 새 글 ${part.length}건 (${FEED_I}/${FEED.length})`;
+    const items = await classifyMany(part);
+    items.forEach(x => { x.sim = true; });
+    ITEMS.push(...items);
+    if (SEL == null) SEL = items[0].id;
+    renderInbox();
+    if (SIM_ON) SIM_T = setTimeout(simTick, SIM_EVERY);
+  }
+  function simStop(msg) {
+    SIM_ON = false; clearTimeout(SIM_T);
+    $("#sim").setAttribute("aria-pressed", "false");
+    $("#sim").textContent = "가상 수집";
+    $("#sim-note").textContent = msg;
+  }
+  $("#sim").addEventListener("click", async () => {
+    if (SIM_ON) { simStop(`가상 수집 멈춤 — ${FEED_I}/${FEED.length}건까지 들어왔어요.`); return; }
+    if (!C) return;
+    try { FEED = FEED || (await load("data/demo_feed.json")).items; } catch (e) { $("#sim-note").hidden = false; $("#sim-note").textContent = "가상 수집 문장을 읽지 못했어요."; return; }
+    if (FEED_I >= FEED.length) FEED_I = 0;      // 다 썼으면 처음부터 다시
+    SIM_ON = true;
+    $("#sim").setAttribute("aria-pressed", "true");
+    $("#sim").textContent = "멈춤";
+    $("#sim-note").hidden = false;
+    simTick();
+  });
+
   renderInbox();
 
   function renderWords() {
