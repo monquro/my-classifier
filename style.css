@@ -211,3 +211,30 @@ textarea:focus { border-color: var(--primary); outline: 3px solid var(--primary-
   .tbl.wrong td { display: block; padding: 2px 0; border: 0; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* 담당자 기능 — 출처 · 매장 · 기한 · 상태 · CSV */
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.compose select, .compose input[type="text"] { width: 100%; min-height: 38px; padding: 0 10px; border: 1px solid var(--line-strong);
+  border-radius: var(--r); background: var(--surface); font-size: 15px; }
+.compose select:focus, .compose input[type="text"]:focus { border-color: var(--primary); outline: 3px solid var(--primary-soft); outline-offset: 0; }
+.auto-note { padding: 0 16px; margin-top: 8px; }
+.list-tools { display: flex; align-items: center; gap: 8px; }
+.btn.sm { min-height: 30px; padding: 0 10px; font-size: 12px; }
+.filters { flex-wrap: wrap; }
+.state { display: inline-flex; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 6px; white-space: nowrap; }
+.state.s-접수 { background: var(--primary-soft); color: var(--primary); }
+.state.s-처리중 { background: var(--mid-bg); color: var(--mid-fg); }
+.state.s-완료 { background: #f0f1f4; color: var(--muted); }
+.late { color: var(--hi-fg); font-weight: 700; }
+.row.done .t { color: var(--muted); }
+.state-seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; }
+.state-seg button { appearance: none; border: 0; border-right: 1px solid var(--line-strong); background: var(--surface);
+  font-size: 12px; font-weight: 600; padding: 4px 9px; min-height: 30px; cursor: pointer; color: var(--muted); }
+.state-seg button:last-child { border-right: 0; }
+.state-seg button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); }
+.prop-list div { grid-template-columns: 72px minmax(0, 1fr); }
+@media (max-width: 640px) {
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+  .state-seg button { min-height: 40px; padding: 0 12px; }
+  .btn.sm { min-height: 40px; }
+}

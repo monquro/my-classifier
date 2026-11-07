@@ -116,6 +116,34 @@
   const ITEMS = [];
   let FILTER = "all", SEL = null, SEQ = 0;
   const RANK = { "높음": 0, "보통": 1, "낮음": 2 };
+  const STATES = ["접수", "처리 중", "완료"];
+
+  // 출처 · 매장은 다음 글에도 그대로 — 이 브라우저에만 기억(편의용). 못 써도 앱은 돈다
+  const PREF = "classifier.compose";
+  try { const v = JSON.parse(localStorage.getItem(PREF) || "{}"); if (v.source) $("#source").value = v.source; if (v.store) $("#store").value = v.store; } catch (e) { /* 무시 */ }
+  const savePref = () => { try { localStorage.setItem(PREF, JSON.stringify({ source: $("#source").value, store: $("#store").value })); } catch (e) { /* 무시 */ } };
+  $("#source").addEventListener("change", savePref);
+  $("#store").addEventListener("change", savePref);
+
+  const catOf = name => (C && C.categories.find(c => c.name === name)) || {};
+  // 답장 기한 = 받은 날 + n일 23:59 (criteria.json 의 due_days)
+  function dueOf(at, urgency) {
+    const n = urgOf(urgency).due_days;
+    if (n == null) return null;
+    const d = new Date(at); d.setDate(d.getDate() + n); d.setHours(23, 59, 0, 0);
+    return d;
+  }
+  const isLate = x => x.state !== "완료" && x.due && Date.now() > x.due.getTime();
+  const pad = n => String(n).padStart(2, "0");
+  const md = d => `${d.getMonth() + 1}/${d.getDate()}`;
+  const hhmm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const stamp = d => `${md(d)} ${hhmm(d)}`;
+  function dueText(x) {
+    if (!x.due) return "—";
+    const today = new Date(); const same = x.due.toDateString() === today.toDateString();
+    return `${same ? "오늘" : md(x.due)} ${hhmm(x.due)}까지`;
+  }
+  const brandName = b => ({ A: "A · 포토부스", B: "B · 뷰티 + 스튜디오" }[b] || "모름");
 
   // 한 번에 여러 글을 가른다 — AI 먼저, 안 되면 그 글은 규칙으로
   async function classifyMany(list, btn) {
@@ -128,10 +156,12 @@
     return list.map((x, i) => {
       const got = ai && ai.results && ai.results[i];
       const r = got || rules[i];
-      return { id: ++SEQ, brand: x.brand, masked: rules[i].masked, found: rules[i].found.length,
+      const at = new Date();
+      return { id: ++SEQ, brand: x.brand, source: x.source, store: x.store || "매장 모름",
+        masked: rules[i].masked, found: rules[i].found.length,
         category: r.category, urgency: r.urgency, reason: r.reason,
-        by: got ? `AI · ${ai.model}` : "규칙", fallbackWhy: got ? "" : (ai && ai.reason) || "AI가 답하지 않음",
-        at: new Date() };
+        team: catOf(r.category).team || "—", at, due: dueOf(at, r.urgency), state: "접수",
+        by: got ? `AI · ${ai.model}` : "규칙", fallbackWhy: got ? "" : (ai && ai.reason) || "AI가 답하지 않음" };
     });
   }
 
@@ -142,7 +172,7 @@
     const brand = document.querySelector('input[name="brand"]:checked').value;
     const btn = $("#form .btn.primary");
     btn.disabled = true;
-    const [item] = await classifyMany([{ text, brand }], btn);
+    const [item] = await classifyMany([{ text, brand, source: $("#source").value, store: $("#store").value.trim() }], btn);
     btn.textContent = "분류"; btn.disabled = false;
     ITEMS.push(item); SEL = item.id;
     $("#text").value = "";
@@ -154,11 +184,12 @@
     const b = $("#load-examples");
     b.disabled = true; b.textContent = "분류 중…";
     // 예시는 기준 파일의 «예»에서 고른다 — 채점용 문장은 쓰지 않는다
-    const picks = [...C.categories].sort((a, c) => a.order - c.order).filter(c => [1, 3, 7, 8].includes(c.order))
-      .map(c => ({ text: c.example, brand: c.name === "뷰티 상품" ? "B" : "A" }));
+    const where = [["구글 리뷰", "A 1호점"], ["DM", "A 2호점"], ["인스타그램 댓글", "B 1호점"], ["매장 QR 피드백", "A 1호점"], ["틱톡 댓글", "온라인 · 매장 모름"]];
+    const picks = [...C.categories].sort((a, c) => a.order - c.order).filter(c => [1, 2, 4, 8, 9].includes(c.order))
+      .map((c, i) => ({ text: c.example, brand: c.name === "뷰티 상품" ? "B" : "A", source: where[i][0], store: where[i][1] }));
     const items = await classifyMany(picks);
     ITEMS.push(...items); SEL = items[0].id;
-    b.disabled = false; b.textContent = "예시 4개 넣기";
+    b.disabled = false; b.textContent = "예시 넣기";
     renderInbox();
   });
 
@@ -175,20 +206,32 @@
     renderInbox();
   });
 
-  const hhmm = d => d.toTimeString().slice(0, 5);
-  const brandName = b => ({ A: "A · 포토부스", B: "B · 뷰티 + 스튜디오" }[b] || "모름");
+  $("#props").addEventListener("click", e => {
+    const b = e.target.closest("[data-state]");
+    if (!b) return;
+    const x = ITEMS.find(i => i.id === SEL);
+    if (x) { x.state = b.dataset.state; renderInbox(); }
+  });
+
+  const pass = x => FILTER === "all" || (FILTER === "open" && x.state !== "완료") || (FILTER === "late" && isLate(x))
+    || x.urgency === FILTER || x.brand === FILTER;
 
   function renderInbox() {
-    const shown = ITEMS.filter(x => FILTER === "all" || x.urgency === FILTER || x.brand === FILTER)
-      .sort((a, b) => (RANK[a.urgency] - RANK[b.urgency]) || (b.id - a.id));   // 급한 글이 위로, 같으면 최근 것
+    const shown = ITEMS.filter(pass)
+      // 완료는 아래로 → 긴급도 높은 순 → 칸 순서(안전·사고가 먼저) → 최근 것
+      .sort((a, b) => ((a.state === "완료") - (b.state === "완료")) || (RANK[a.urgency] - RANK[b.urgency])
+        || ((catOf(a.category).order || 99) - (catOf(b.category).order || 99)) || (b.id - a.id));
     $("#count").textContent = `${ITEMS.length}건`;
-    const hi = ITEMS.filter(x => x.urgency === "높음").length;
+    const hi = ITEMS.filter(x => x.urgency === "높음" && x.state !== "완료").length;
     $("#hi-count").hidden = !hi;
     $("#hi-count").textContent = `높음 ${hi}`;
+    $("#export").disabled = !ITEMS.length;
     $("#list-empty").hidden = ITEMS.length > 0;
-    $("#rows").innerHTML = shown.map(x => `<li><button type="button" class="row" data-id="${x.id}" aria-current="${x.id === SEL}">
+    $("#rows").innerHTML = shown.map(x => `<li><button type="button" class="row${x.state === "완료" ? " done" : ""}" data-id="${x.id}" aria-current="${x.id === SEL}">
         <span class="t">${esc(x.masked)}</span>
-        <span class="m"><span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span><span class="cat">${esc(x.category)}</span><span>${esc(x.brand)} · ${hhmm(x.at)}</span></span>
+        <span class="m"><span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span><span class="cat">${esc(x.category)}</span>
+          <span class="state s-${esc(x.state.replace(" ", ""))}">${esc(x.state)}</span>${isLate(x) ? '<span class="late">기한 지남</span>' : ""}</span>
+        <span class="m">${esc(x.source)} · ${esc(x.store)} · ${stamp(x.at)}</span>
       </button></li>`).join("") || (ITEMS.length ? `<li class="list-empty"><p>이 조건에 맞는 글이 없어요.</p></li>` : "");
     renderDetail(ITEMS.find(x => x.id === SEL));
   }
@@ -196,21 +239,42 @@
   function renderDetail(x) {
     $("#detail-empty").hidden = !!x;
     $("#detail").hidden = !x;
-    const dd = [...document.querySelectorAll("#props dd")];
-    if (!x) { dd.forEach(d => { d.textContent = "—"; }); return; }
-    $("#d-meta").textContent = `#${String(x.id).padStart(2, "0")} · ${brandName(x.brand)} · ${hhmm(x.at)}${x.found ? ` · 가린 것 ${x.found}개` : ""}`;
+    const dd = k => document.querySelector(`#props dd[data-k="${k}"]`);
+    if (!x) { document.querySelectorAll("#props dd").forEach(d => { d.textContent = "—"; }); return; }
+    $("#d-meta").textContent = `#${pad(x.id)} · ${brandName(x.brand)} · ${x.store} · ${x.source} · ${stamp(x.at)} 받음${x.found ? ` · 가린 것 ${x.found}개` : ""}`;
     $("#d-msg").textContent = x.masked;
     const by = $("#d-by");
     by.textContent = x.by === "규칙" ? `규칙으로 분류 — ${x.fallbackWhy}` : x.by;
     by.classList.toggle("fallback", x.by === "규칙");
     $("#d-reason").textContent = x.reason;
-    const cat = C.categories.find(c => c.name === x.category);
-    dd[0].innerHTML = `<span class="big">${esc(x.category)}</span>${cat ? ` <span class="muted small">순서 ${cat.order}</span>` : ""}`;
-    dd[1].innerHTML = `<span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span>`;
-    dd[2].textContent = urgOf(x.urgency).reply || "—";
-    dd[3].textContent = brandName(x.brand);
-    dd[4].textContent = x.by === "규칙" ? "규칙 (AI 실패)" : x.by;
+    const cat = catOf(x.category);
+    dd("cat").innerHTML = `<span class="big">${esc(x.category)}</span>${cat.order ? ` <span class="muted small">순서 ${cat.order}</span>` : ""}`;
+    dd("urg").innerHTML = `<span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span>`;
+    dd("due").innerHTML = `${esc(dueText(x))}${isLate(x) ? ' <span class="late">기한 지남</span>' : ""}`;
+    dd("team").textContent = x.team;
+    dd("state").innerHTML = `<span class="state-seg" role="group" aria-label="처리 상태">${STATES.map(st =>
+      `<button type="button" data-state="${st}" aria-pressed="${x.state === st}">${st}</button>`).join("")}</span>`;
+    dd("brand").textContent = brandName(x.brand);
+    dd("store").textContent = x.store;
+    dd("source").textContent = x.source;
+    dd("by").textContent = x.by === "규칙" ? "규칙 (AI 실패)" : x.by;
   }
+
+  /* CSV — 이 창에 쌓인 글을 엑셀로. 가린 문장만 담는다 */
+  $("#export").addEventListener("click", () => {
+    const head = ["번호", "받은 시각", "출처", "브랜드", "매장", "가린 문장", "칸", "긴급도", "답장 기한", "담당", "상태", "기한 지남", "판정", "이유"];
+    const cell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const iso = d => d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hhmm(d)}` : "";
+    const rows = ITEMS.map(x => [x.id, iso(x.at), x.source, x.brand, x.store, x.masked, x.category, x.urgency,
+      iso(x.due), x.team, x.state, isLate(x) ? "예" : "", x.by, x.reason]);
+    const csv = "﻿" + [head, ...rows].map(r => r.map(cell).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const t = new Date();
+    a.download = `받은글_${t.getFullYear()}${pad(t.getMonth() + 1)}${pad(t.getDate())}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
   renderInbox();
 
   function renderWords() {
