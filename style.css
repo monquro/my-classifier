@@ -288,3 +288,16 @@ textarea:focus { border-color: var(--primary); outline: 3px solid var(--primary-
 .bar-row .n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
 .bar-row.zero .lab, .bar-row.zero .n { color: var(--muted); font-weight: 500; }
 .bar-row.zero .fill { display: none !important; }
+
+/* 사람 확인 · 고치기 */
+.need { display: inline-flex; font-size: 12px; font-weight: 700; color: var(--mid-fg); background: var(--mid-bg);
+  border: 1px solid var(--mid-line); border-radius: 6px; padding: 0 7px; white-space: nowrap; }
+.edited { display: inline-flex; font-size: 12px; font-weight: 700; color: var(--primary); border: 1px dashed var(--primary);
+  border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+.ok { font-size: 13px; font-weight: 700; color: var(--lo-fg); }
+.why-list { margin: 6px 0 8px; padding-left: 16px; font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.review-row { background: #fffdf5; margin: 0 -16px; padding-left: 16px !important; padding-right: 16px !important; }
+.edit { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.edit select { min-height: 30px; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 13px; background: var(--surface); }
+.d-edit { margin: 0; padding: 10px 14px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--primary); font-weight: 600; }
+@media (max-width: 640px) { .edit select { min-height: 40px; } }

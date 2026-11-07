@@ -146,6 +146,18 @@
   const brandName = b => ({ A: "A · 포토부스", B: "B · 뷰티 + 스튜디오" }[b] || "모름");
 
   // 한 번에 여러 글을 가른다 — AI 먼저, 안 되면 그 글은 규칙으로
+  /* 사람 확인이 필요한 까닭 — 틀리면 피해가 큰 글, AI 가 못 본 글, 규칙이 더 급하게 본 글 */
+  function reviewWhy(aiGot, rule, final) {
+    const why = [];
+    if (!aiGot) why.push("AI가 답하지 않아 규칙으로 분류했어요");
+    if (final.urgency === "높음") why.push("긴급도 높음 — 틀리면 피해가 커요");
+    if (aiGot && rule.category !== "기타" && rule.category !== final.category
+        && (catOf(rule.category).order || 99) < (catOf(final.category).order || 99))
+      why.push(`규칙은 더 급한 칸 «${rule.category}»으로 봤어요`);
+    if (aiGot && rule.urgency === "높음" && final.urgency !== "높음") why.push("규칙은 긴급도 높음으로 봤어요");
+    return why;
+  }
+
   async function classifyMany(list, btn) {
     const rules = list.map(x => byRules(x.text, x.brand));
     let ai = await askAI(rules.map((r, i) => ({ text: r.masked, brand: list[i].brand })));
@@ -161,7 +173,9 @@
         masked: rules[i].masked, found: rules[i].found.length,
         category: r.category, urgency: r.urgency, reason: r.reason,
         team: catOf(r.category).team || "—", at, due: dueOf(at, r.urgency), state: "접수",
-        by: got ? `AI · ${ai.model}` : "규칙", fallbackWhy: got ? "" : (ai && ai.reason) || "AI가 답하지 않음" };
+        by: got ? `AI · ${ai.model}` : "규칙", fallbackWhy: got ? "" : (ai && ai.reason) || "AI가 답하지 않음",
+        reviewWhy: reviewWhy(got, rules[i], r), review: reviewWhy(got, rules[i], r).length ? "필요" : "없음",
+        rule: { category: rules[i].category, urgency: rules[i].urgency }, edited: null, reviewedAt: null };
     });
   }
 
@@ -213,7 +227,7 @@
     if (x) { x.state = b.dataset.state; renderInbox(); }
   });
 
-  const pass = x => FILTER === "all" || (FILTER === "open" && x.state !== "완료") || (FILTER === "late" && isLate(x))
+  const pass = x => FILTER === "all" || (FILTER === "review" && x.review === "필요") || (FILTER === "open" && x.state !== "완료") || (FILTER === "late" && isLate(x))
     || x.urgency === FILTER || x.brand === FILTER;
 
   function renderInbox() {
@@ -230,7 +244,7 @@
     $("#rows").innerHTML = shown.map(x => `<li><button type="button" class="row${x.state === "완료" ? " done" : ""}" data-id="${x.id}" aria-current="${x.id === SEL}">
         <span class="t">${esc(x.masked)}</span>
         <span class="m"><span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span><span class="cat">${esc(x.category)}</span>
-          <span class="state s-${esc(x.state.replace(" ", ""))}">${esc(x.state)}</span>${isLate(x) ? '<span class="late">기한 지남</span>' : ""}</span>
+          <span class="state s-${esc(x.state.replace(" ", ""))}">${esc(x.state)}</span>${isLate(x) ? '<span class="late">기한 지남</span>' : ""}${x.review === "필요" ? '<span class="need">확인 필요</span>' : ""}${x.edited ? '<span class="edited">사람 수정</span>' : ""}</span>
         <span class="m">${x.sim ? '<span class="virt">가상</span>' : ""}${esc(x.source)} · ${esc(x.store)} · ${stamp(x.at)}</span>
       </button></li>`).join("") || (ITEMS.length ? `<li class="list-empty"><p>이 조건에 맞는 글이 없어요.</p></li>` : "");
     renderDetail(ITEMS.find(x => x.id === SEL));
@@ -259,15 +273,52 @@
     dd("store").textContent = x.store;
     dd("source").textContent = x.source;
     dd("by").textContent = x.by === "규칙" ? "규칙 (AI 실패)" : x.by;
+    const de = $("#d-edit");
+    de.hidden = !x.edited;
+    if (x.edited) de.textContent = `사람이 고침: ${x.edited.category} · ${x.edited.urgency} (처음 판정) → ${x.category} · ${x.urgency}`;
+    // 사람 확인
+    dd("review").innerHTML = x.review === "필요"
+      ? `<span class="need">확인 필요</span><ul class="why-list">${x.reviewWhy.map(w => `<li>${esc(w)}</li>`).join("")}</ul>
+         <button type="button" class="btn sm primary" data-act="confirm">판정 맞음 · 확인</button>`
+      : x.review === "완료"
+        ? `<span class="ok">✓ 사람 확인 ${hhmm(x.reviewedAt)}</span>`
+        : `<span class="muted small">필요 없음</span>`;
+    // 고치기 — 칸 · 긴급도를 바꾸면 담당 · 기한을 다시 붙이고 사람 확인으로 처리
+    const cats = [...C.categories].sort((a, b) => a.order - b.order);
+    dd("edit").innerHTML = `<span class="edit">
+        <select data-edit="category" aria-label="칸 고치기">${cats.map(c => `<option${c.name === x.category ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+        <select data-edit="urgency" aria-label="긴급도 고치기">${["높음", "보통", "낮음"].map(u => `<option${u === x.urgency ? " selected" : ""}>${u}</option>`).join("")}</select>
+        <button type="button" class="btn sm" data-act="edit">고쳐서 확정</button></span>`;
   }
+
+  // 사람 확인 · 고치기
+  $("#props").addEventListener("click", e => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const x = ITEMS.find(i => i.id === SEL);
+    if (!x) return;
+    if (b.dataset.act === "edit") {
+      const cat = document.querySelector('#props [data-edit="category"]').value;
+      const urg = document.querySelector('#props [data-edit="urgency"]').value;
+      if (cat !== x.category || urg !== x.urgency) {
+        if (!x.edited) x.edited = { category: x.category, urgency: x.urgency };
+        x.category = cat; x.urgency = urg;
+        x.team = catOf(cat).team || "—";
+        x.due = dueOf(x.at, urg);
+      }
+    }
+    x.review = "완료"; x.reviewedAt = new Date();
+    renderInbox();
+  });
 
   /* CSV — 이 창에 쌓인 글을 엑셀로. 가린 문장만 담는다 */
   $("#export").addEventListener("click", () => {
-    const head = ["번호", "받은 시각", "출처", "브랜드", "매장", "가린 문장", "칸", "긴급도", "답장 기한", "담당", "상태", "기한 지남", "판정", "이유"];
+    const head = ["번호", "받은 시각", "출처", "브랜드", "매장", "가린 문장", "칸", "긴급도", "답장 기한", "담당", "상태", "기한 지남", "판정", "이유", "사람 확인", "처음 판정(고치기 전)"];
     const cell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const iso = d => d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hhmm(d)}` : "";
     const rows = ITEMS.map(x => [x.id, iso(x.at), x.source, x.brand, x.store, x.masked, x.category, x.urgency,
-      iso(x.due), x.team, x.state, isLate(x) ? "예" : "", x.by, x.reason]);
+      iso(x.due), x.team, x.state, isLate(x) ? "예" : "", x.by, x.reason,
+      x.review === "필요" ? "필요" : x.review === "완료" ? "완료" : "", x.edited ? `${x.edited.category} · ${x.edited.urgency}` : ""]);
     const csv = "﻿" + [head, ...rows].map(r => r.map(cell).join(",")).join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
@@ -354,7 +405,9 @@
       tile("미완료", open.length, `완료 ${N - open.length}건`) +
       tile("높음 · 미완료", hiOpen.length, "오늘 안에 답장", hiOpen.length > 0) +
       tile("오늘 답장할 글", todayDue.length, "기한이 오늘 23:59") +
-      tile("기한 지남", late.length, late.length ? "바로 확인 필요" : "없음", late.length > 0);
+      tile("기한 지남", late.length, late.length ? "바로 확인 필요" : "없음", late.length > 0) +
+      tile("사람 확인 대기", ITEMS.filter(x => x.review === "필요").length,
+        `사람이 고친 글 ${ITEMS.filter(x => x.edited).length}건`, ITEMS.some(x => x.review === "필요"));
 
     // 부서별 — 칸 순서대로, 글이 있는 담당만
     const order = [...C.categories].sort((a, b) => a.order - b.order);
