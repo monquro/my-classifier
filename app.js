@@ -34,29 +34,19 @@
   const load = p => fetch(p, { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(p); return r.json(); });
   Promise.all([load("criteria.json"), load("keywords.json")]).then(([c, k]) => {
     C = c; K = k;
-    renderIntro();
+    renderCriteria();
     renderWords();
-  }).catch(e => { $("#words").textContent = "기준 파일을 읽지 못했어요: " + e.message; });
+  }).catch(e => { $("#owner").textContent = "기준 파일을 읽지 못했어요: " + e.message; });
 
-  /* 소개 카드 — 누가 정한 기준인지, 칸 · 긴급도 범례, 예시 문장. 모두 criteria.json 에서 */
-  function renderIntro() {
-    $("#owner").textContent = `${C.owner} · 기준 version ${C.version}`;
+  /* 기준표 · 예시 — 모두 criteria.json 에서 */
+  const urgOf = level => (C && C.urgency.find(u => u.level === level)) || {};
+  function renderCriteria() {
+    $("#owner").textContent = `${C.owner} · 기준 v${C.version}`;
     const order = [...C.categories].sort((a, b) => a.order - b.order);
-    $("#legend-cats").innerHTML = order.map(c => `<span class="chip" title="${esc(c.def)}">${esc(c.name)}</span>`).join("");
-    $("#legend-urg").innerHTML = C.urgency.map(u =>
-      `<span class="chip u-${esc(u.level)}" title="${esc(u.def)}">${esc(u.level)} · ${esc(u.reply)}</span>`).join("");
-    // 예시는 기준 파일의 «예»에서 고른다 — 채점용 문장은 쓰지 않는다
-    const picks = order.filter(c => [1, 3, 7, 8].includes(c.order));
-    $("#examples").innerHTML = picks.map(c =>
-      `<button type="button" class="chip" data-brand="${c.name === "뷰티 상품" ? "B" : "A"}">${esc(c.example)}</button>`).join("");
-    $("#examples").addEventListener("click", e => {
-      const b = e.target.closest("button");
-      if (!b) return;
-      $("#text").value = b.textContent;
-      const radio = document.querySelector(`input[name="brand"][value="${b.dataset.brand}"]`);
-      if (radio) radio.checked = true;
-      $("#text").focus();
-    });
+    $("#crit-cats").innerHTML = order.map(c =>
+      `<tr><td class="ord">${c.order}</td><td>${esc(c.name)}</td><td>${esc(c.def)}</td></tr>`).join("");
+    $("#crit-urg").innerHTML = C.urgency.map(u =>
+      `<tr><td><span class="status u-${esc(u.level)}">${esc(u.level)}</span></td><td>${esc(u.def)}</td><td style="white-space:nowrap">${esc(u.reply)}</td></tr>`).join("");
   }
 
   /* 탭 */
@@ -93,9 +83,9 @@
   function showModel() {
     const m = currentModel();
     $("#model-now").textContent = pick.value === CUSTOM && !m
-      ? "모델 이름을 입력하세요. 비어 있으면 서버 기본값으로 불러요."
-      : m ? `지금 호출 모델: ${m}`
-        : `지금 호출 모델: 서버 기본값${SERVER_DEFAULT ? ` (${SERVER_DEFAULT})` : " (서버에 닿지 못해 이름을 모름)"}`;
+      ? "모델 이름을 입력하세요 (비우면 서버 기본값)"
+      : m ? `호출 모델 ${m}`
+        : `호출 모델 서버 기본값${SERVER_DEFAULT ? ` (${SERVER_DEFAULT})` : " (서버에 닿지 못해 이름을 모름)"}`;
   }
   pick.addEventListener("change", () => {
     custom.hidden = pick.value !== CUSTOM;
@@ -122,36 +112,106 @@
     }
   }
 
-  /* 분류 탭 */
+  /* 받은 글 — 이 창에만 쌓는다. 새로 고치면 사라진다(저장하지 않음) */
+  const ITEMS = [];
+  let FILTER = "all", SEL = null, SEQ = 0;
+  const RANK = { "높음": 0, "보통": 1, "낮음": 2 };
+
+  // 한 번에 여러 글을 가른다 — AI 먼저, 안 되면 그 글은 규칙으로
+  async function classifyMany(list, btn) {
+    const rules = list.map(x => byRules(x.text, x.brand));
+    let ai = await askAI(rules.map((r, i) => ({ text: r.masked, brand: list[i].brand })));
+    if (ai && ai.timeout) {                       // 느리면 한 번만 더
+      if (btn) btn.textContent = "다시 시도…";
+      ai = await askAI(rules.map((r, i) => ({ text: r.masked, brand: list[i].brand })));
+    }
+    return list.map((x, i) => {
+      const got = ai && ai.results && ai.results[i];
+      const r = got || rules[i];
+      return { id: ++SEQ, brand: x.brand, masked: rules[i].masked, found: rules[i].found.length,
+        category: r.category, urgency: r.urgency, reason: r.reason,
+        by: got ? `AI · ${ai.model}` : "규칙", fallbackWhy: got ? "" : (ai && ai.reason) || "AI가 답하지 않음",
+        at: new Date() };
+    });
+  }
+
   $("#form").addEventListener("submit", async e => {
     e.preventDefault();
     const text = $("#text").value.trim();
     if (!text || !C) return;
     const brand = document.querySelector('input[name="brand"]:checked').value;
-    const btn = $("#form .go");
+    const btn = $("#form .btn.primary");
     btn.disabled = true;
-    const rule = byRules(text, brand);
-    let ai = await askAI([{ text: rule.masked, brand }]);
-    if (ai && ai.timeout) {                       // 느리면 한 번만 더
-      btn.textContent = "다시 시도…";
-      ai = await askAI([{ text: rule.masked, brand }]);
-      btn.textContent = "분류하기";
-    }
-    const got = ai && ai.results && ai.results[0];
-    const r = got || rule;
-    const by = $("#r-by");
-    by.textContent = got ? `AI(${ai.model})가 갈랐습니다` : `AI 없이 규칙으로 갈랐습니다 — ${ai.reason || "AI가 답하지 않음"}`;
-    by.classList.toggle("fallback", !got);
-    $("#r-masked").textContent = rule.masked;
-    $("#r-cat").textContent = r.category;
-    const u = $("#r-urg");
-    u.textContent = "긴급도 " + r.urgency;
-    u.className = "pill u-" + r.urgency;
-    $("#r-reason").textContent = r.reason + (rule.found.length ? ` · 가린 것 ${rule.found.length}개` : "");
-    $("#empty").hidden = true;
-    $("#result").hidden = false;
-    btn.disabled = false;
+    const [item] = await classifyMany([{ text, brand }], btn);
+    btn.textContent = "분류하기"; btn.disabled = false;
+    ITEMS.push(item); SEL = item.id;
+    $("#text").value = "";
+    renderInbox();
   });
+
+  $("#load-examples").addEventListener("click", async () => {
+    if (!C) return;
+    const b = $("#load-examples");
+    b.disabled = true; b.textContent = "분류하는 중…";
+    // 예시는 기준 파일의 «예»에서 고른다 — 채점용 문장은 쓰지 않는다
+    const picks = [...C.categories].sort((a, c) => a.order - c.order).filter(c => [1, 3, 7, 8].includes(c.order))
+      .map(c => ({ text: c.example, brand: c.name === "뷰티 상품" ? "B" : "A" }));
+    const items = await classifyMany(picks);
+    ITEMS.push(...items); SEL = items[0].id;
+    b.disabled = false; b.textContent = "예시 4개 넣어 보기";
+    renderInbox();
+  });
+
+  document.querySelectorAll(".filters button").forEach(b => b.addEventListener("click", () => {
+    FILTER = b.dataset.f;
+    document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    renderInbox();
+  }));
+
+  $("#rows").addEventListener("click", e => {
+    const b = e.target.closest("button.row");
+    if (!b) return;
+    SEL = +b.dataset.id;
+    renderInbox();
+  });
+
+  const hhmm = d => d.toTimeString().slice(0, 5);
+  const brandName = b => ({ A: "A · 포토부스", B: "B · 뷰티 + 스튜디오" }[b] || "모름");
+
+  function renderInbox() {
+    const shown = ITEMS.filter(x => FILTER === "all" || x.urgency === FILTER || x.brand === FILTER)
+      .sort((a, b) => (RANK[a.urgency] - RANK[b.urgency]) || (b.id - a.id));   // 급한 글이 위로, 같으면 최근 것
+    $("#count").textContent = `${ITEMS.length}건`;
+    const hi = ITEMS.filter(x => x.urgency === "높음").length;
+    $("#hi-count").hidden = !hi;
+    $("#hi-count").textContent = `높음 ${hi}`;
+    $("#list-empty").hidden = ITEMS.length > 0;
+    $("#rows").innerHTML = shown.map(x => `<li><button type="button" class="row" data-id="${x.id}" aria-current="${x.id === SEL}">
+        <span class="t">${esc(x.masked)}</span>
+        <span class="m"><span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span><span class="cat">${esc(x.category)}</span><span>${esc(x.brand)} · ${hhmm(x.at)}</span></span>
+      </button></li>`).join("") || (ITEMS.length ? `<li class="list-empty"><p>이 조건에 맞는 글이 없어요.</p></li>` : "");
+    renderDetail(ITEMS.find(x => x.id === SEL));
+  }
+
+  function renderDetail(x) {
+    $("#detail-empty").hidden = !!x;
+    $("#detail").hidden = !x;
+    const dd = [...document.querySelectorAll("#props dd")];
+    if (!x) { dd.forEach(d => { d.textContent = "—"; }); return; }
+    $("#d-meta").textContent = `#${String(x.id).padStart(2, "0")} · ${brandName(x.brand)} · ${hhmm(x.at)}${x.found ? ` · 가린 것 ${x.found}개` : ""}`;
+    $("#d-msg").textContent = x.masked;
+    const by = $("#d-by");
+    by.textContent = x.by === "규칙" ? `규칙으로 분류 — ${x.fallbackWhy}` : x.by;
+    by.classList.toggle("fallback", x.by === "규칙");
+    $("#d-reason").textContent = x.reason;
+    const cat = C.categories.find(c => c.name === x.category);
+    dd[0].innerHTML = `<span class="big">${esc(x.category)}</span>${cat ? ` <span class="muted small">순서 ${cat.order}</span>` : ""}`;
+    dd[1].innerHTML = `<span class="status u-${esc(x.urgency)}">${esc(x.urgency)}</span>`;
+    dd[2].textContent = urgOf(x.urgency).reply || "—";
+    dd[3].textContent = brandName(x.brand);
+    dd[4].textContent = x.by === "규칙" ? "규칙 (AI 실패)" : x.by;
+  }
+  renderInbox();
 
   function renderWords() {
     const order = [...C.categories].sort((a, b) => a.order - b.order);
@@ -164,7 +224,7 @@
     $("#words").innerHTML = html;
   }
 
-  /* 채점 탭 */
+  /* 채점 */
   const answers = async () => (ANSWER = ANSWER || await load("data/answer.json"));
 
   $("#run-rules").addEventListener("click", async () => {
@@ -222,44 +282,53 @@
     } finally { btn.disabled = false; btn.textContent = "AI로 채점"; }
   });
 
+  /* 규칙 vs AI 표 — 아직 안 쟀으면 «—» */
+  function renderCompare() {
+    const R = LAST.rules, A = LAST.ai;
+    // 맞음은 많을수록, 놓침 · 답 없음은 적을수록 좋다
+    const rows = [
+      ["칸 맞음", s => s.category, s => s.n, 1, true],
+      ["긴급도 맞음", s => s.urgency, s => s.n, 1, true],
+      ["둘 다 맞음", s => s.both, s => s.n, 1, true],
+      ["결제·환불을 다른 칸으로 놓침", s => s.worst.pay, s => s.worst.payTotal, -1, true],
+      ["피부 반응을 높음 아닌 긴급도로 놓침", s => s.worst.skin, s => s.worst.skinTotal, -1, false],
+      ["AI 답 없음", s => s.missing ?? 0, null, -1, false],
+    ];
+    $("#c-table").innerHTML = rows.map(([label, v, total, dir, key]) => {
+      const rv = R ? v(R) : null, av = A ? v(A) : null;
+      const cls = (mine, other) => (mine == null || other == null || mine === other) ? ""
+        : ((mine - other) * dir > 0 ? "better" : "worse");
+      const cell = (s, val, other) => s
+        ? `<td class="num ${label === "AI 답 없음" ? "" : cls(val, other)}">${val}${total ? `<span class="muted"> / ${total(s)}</span>` : ""}</td>`
+        : `<td class="num muted">—</td>`;
+      const rCell = label === "AI 답 없음" ? `<td class="num muted">—</td>` : cell(R, rv, av);
+      return `<tr${key ? ' class="key"' : ""}><td>${label}</td>${rCell}${cell(A, av, rv)}</tr>`;
+    }).join("");
+    $("#ai-col").textContent = LAST.model ? `AI · ${LAST.model}` : "AI";
+    $("#dl-foot").hidden = !LAST.aiRaw;
+  }
+  renderCompare();
+
   function renderScore(s, who) {
     const n = s.n;
-    $("#s-which").textContent = `${who} 자세히 (${n}문장)`;
+    $("#s-which").textContent = `${who} — 자세히 (${n}문장)`;
     const w = s.worst;
     $("#s-worst").innerHTML = `
       <li>결제·환불을 다른 칸으로 — <span class="${w.pay ? "bad" : ""}">${w.pay}개</span> / ${w.payTotal}문장 중</li>
       <li>피부 반응(뷰티 상품 · 높음)을 높음이 아닌 긴급도로 — <span class="${w.skin ? "bad" : ""}">${w.skin}개</span> / ${w.skinTotal}문장 중</li>`;
-    $("#s-brand").innerHTML = `<tr><th>브랜드</th><th>문장</th><th>칸</th><th>긴급도</th><th>둘 다</th></tr>` +
+    $("#s-brand").innerHTML = `<thead><tr><th>브랜드</th><th class="num">문장</th><th class="num">칸</th><th class="num">긴급도</th><th class="num">둘 다</th></tr></thead><tbody>` +
       Object.entries(s.brands).sort().map(([b, v]) =>
-        `<tr><td>${esc(b)}</td><td>${v.n}</td><td>${v.category}</td><td>${v.urgency}</td><td>${v.both}</td></tr>`).join("");
+        `<tr><td>${esc(b)}</td><td class="num">${v.n}</td><td class="num">${v.category}</td><td class="num">${v.urgency}</td><td class="num">${v.both}</td></tr>`).join("") + "</tbody>";
     $("#s-wrong-n").textContent = `${s.wrong.length}개`;
     $("#s-wrong").innerHTML = s.wrong.map(x => {
       const c = x.want.category === x.got.category, u = x.want.urgency === x.got.urgency;
-      return `<li><span class="t">${esc(x.id)} · ${esc(x.brand)} · ${esc(x.text)}</span>
-        <span class="v">정답 <b>${esc(x.want.category)} · ${esc(x.want.urgency)}</b> → 판정
-        <span class="${c ? "" : "x"}">${esc(x.got.category)}</span> · <span class="${u ? "" : "x"}">${esc(x.got.urgency)}</span></span>
-        <span class="v">${esc(x.got.reason)}</span></li>`;
+      return `<tr><td>${esc(x.id)} · ${esc(x.brand)}</td><td>${esc(x.text)}</td>
+        <td>${esc(x.want.category)} · ${esc(x.want.urgency)}</td>
+        <td><span class="${c ? "" : "x"}">${esc(x.got.category)}</span> · <span class="${u ? "" : "x"}">${esc(x.got.urgency)}</span>
+          <span class="why-s">${esc(x.got.reason)}</span></td></tr>`;
     }).join("");
     $("#score").hidden = false;
   }
-
-  /* 규칙 · AI 점수판 — 나란히 두고, 아직 안 쟀으면 «—» */
-  function stats(s) {
-    const box = (k, v, total, sub, warn) => `<div class="stat${warn ? " warn-stat" : ""}"><span class="s-k">${k}</span>
-      <span class="s-v">${v}${total != null ? `<small>/${total}</small>` : ""}</span><span class="s-sub">${sub}</span></div>`;
-    if (!s) return ["칸 맞음", "긴급도 맞음", "둘 다 맞음", "결제·환불 놓침"].map(k => box(k, "—", null, "아직 안 쟀어요")).join("");
-    const w = s.worst;
-    return box("칸 맞음", s.category, s.n, "") + box("긴급도 맞음", s.urgency, s.n, "") +
-      box("둘 다 맞음", s.both, s.n, s.missing ? `AI 답 없음 ${s.missing}개 포함` : "") +
-      box("결제·환불 놓침", w.pay, w.payTotal, `피부 반응 놓침 ${w.skin}/${w.skinTotal}`, w.pay > 0);
-  }
-  function renderCompare() {
-    $("#stats-rules").innerHTML = stats(LAST.rules);
-    $("#stats-ai").innerHTML = stats(LAST.ai);
-    $("#ai-model").textContent = LAST.model ? `AI · ${LAST.model}` : "Gemini";
-    $("#download").hidden = !LAST.aiRaw;
-  }
-  renderCompare();
 
   $("#download").addEventListener("click", () => {
     if (!LAST.aiRaw) return;
